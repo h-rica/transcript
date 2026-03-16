@@ -44,6 +44,12 @@ lint:
     cargo clippy -- -D warnings
     cd src-tauri; cargo clippy -- -D warnings
 
+# Download Whisper Tiny bundled model (run once before cargo tauri build)
+download-whisper-tiny:
+    New-Item -ItemType Directory -Path src-tauri/resources -Force
+    Invoke-WebRequest -Uri "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin" -OutFile "src-tauri/resources/ggml-tiny.bin"
+    Write-Host "done: src-tauri/resources/ggml-tiny.bin"
+
 # Clean build artifacts
 clean:
     cargo clean

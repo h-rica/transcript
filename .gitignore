@@ -20,3 +20,8 @@ target
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea
 dist
+docs/design.md
+# Model files — download via: just download-whisper-tiny
+src-tauri/resources/*.bin
+src-tauri/resources/*.onnx
+src-tauri/resources/*.data

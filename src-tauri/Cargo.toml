@@ -24,6 +24,9 @@ serde_json = "1"
 ort     = { version = "2.0.0-rc.12", features = ["load-dynamic"] }
 ndarray = "0.17.2"
 
+# Whisper fallback
+whisper-rs = "0.16.0"
+
 # Audio
 symphonia = { version = "0.5", features = ["mp3", "wav", "aac"] }
 
@@ -50,6 +53,9 @@ log                = "0.4"
 tauri-plugin-log   = "2"
 tracing            = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Filesystem
+dirs = "6.0.0"
 
 [profile.release]
 opt-level     = 3
