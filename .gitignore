@@ -21,3 +21,7 @@ target
 .idea
 dist
 docs/design.md
+# Model files — download via: just download-whisper-tiny
+src-tauri/resources/*.bin
+src-tauri/resources/*.onnx
+src-tauri/resources/*.data
