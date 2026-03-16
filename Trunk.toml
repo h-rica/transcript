@@ -1,6 +1,9 @@
 [build]
 target = "index.html"
 
+[tools]
+tailwindcss = "4.1.10"
+
 [serve]
-port    = 8080
-open    = false
+port = 8080
+open = false
