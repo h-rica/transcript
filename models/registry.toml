@@ -1,0 +1,53 @@
+[[models]]
+id = "whisper-tiny"
+name = "Whisper Tiny"
+size_mb = 150
+tier = "minimal"
+bundled = true
+diarization = false
+languages = ["fr", "en", "multilingual"]
+source = "bundled"
+
+[[models]]
+id = "whisper-medium"
+name = "Whisper Medium"
+size_mb = 1500
+tier = "standard"
+bundled = false
+diarization = false
+languages = ["fr", "en", "multilingual"]
+source = "huggingface"
+repo_id = "ggerganov/whisper.cpp"
+files = ["ggml-medium.bin"]
+sha256 = { "ggml-medium.bin" = "" }
+
+[[models]]
+id = "whisper-large-v3"
+name = "Whisper Large v3"
+size_mb = 3100
+tier = "standard"
+bundled = false
+diarization = false
+languages = ["fr", "en", "multilingual"]
+source = "huggingface"
+repo_id = "ggerganov/whisper.cpp"
+files = ["ggml-large-v3.bin"]
+sha256 = { "ggml-large-v3.bin" = "" }
+
+[[models]]
+id = "vibevoice-int8"
+name = "VibeVoice INT8"
+size_mb = 8500
+tier = "standard"
+bundled = false
+diarization = true
+languages = ["fr", "en"]
+source = "huggingface"
+repo_id = "MiicaLabs/vibevoice-onnx-artifacts"
+files = [
+    "onnx/vibevoice_acoustic.onnx",
+    "onnx/vibevoice_acoustic.onnx.data",
+    "onnx/vibevoice_semantic.onnx",
+    "onnx/vibevoice_semantic.onnx.data",
+]
+sha256 = { }
