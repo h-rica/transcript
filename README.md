@@ -54,6 +54,11 @@ cargo install trunk
 
 # Node.js LTS (required by Tauri)
 # https://nodejs.org
+
+# LLVM — required by whisper-rs bindgen (Windows only)
+winget install LLVM.LLVM
+# Then set: $env:LIBCLANG_PATH = "C:\Program Files\LLVM\bin"
+# Persist:  [System.Environment]::SetEnvironmentVariable("LIBCLANG_PATH", "C:\Program Files\LLVM\bin", "User")
 ```
 
 ### Run in development
