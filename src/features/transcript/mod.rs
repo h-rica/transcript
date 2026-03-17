@@ -1,17 +1,10 @@
 mod service;
 
 use leptos::{prelude::*, task::spawn_local};
-use singlestage::{
-    Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Empty, EmptyContent,
-    EmptyDescription, EmptyHeader, EmptyTitle, Tabs, TabsContent, TabsList, TabsTrigger,
-};
 use wasm_bindgen_futures::JsFuture;
 
 use crate::{
-    components::{
-        app_ui::{ActionButton, SpeakerPill},
-        workspace::{WorkspaceHeader, WorkspaceRoute, WorkspaceShell},
-    },
+    components::workspace::{WorkspaceHeader, WorkspaceRoute, WorkspaceShell},
     features::shared::{format_mm_ss, speaker_palette},
     state::app_state::{
         ExportRequest, TranscriptSegment, use_app_shell_state, use_transcript_view_state,
@@ -129,30 +122,33 @@ pub fn TranscriptScreen() -> impl IntoView {
                         .unwrap_or_else(|| "Current transcript".into())
                 })
             >
-                <ActionButton on_click=copy_segments variant="outline">"Copy all"</ActionButton>
-                <ActionButton
-                    on_click=Callback::new(move |_| {
+                <button
+                    class="inline-flex h-9 items-center rounded-lg border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-[#17181b] dark:hover:text-zinc-100"
+                    on:click=move |_| copy_segments.run(())
+                    type="button"
+                >
+                    "Copy all"
+                </button>
+                <button
+                    class="inline-flex h-9 items-center rounded-lg bg-zinc-950 px-3 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                    on:click=move |_| {
                         view_state.export_open.update(|open| *open = !*open);
-                    })
+                    }
+                    type="button"
                 >
                     {move || if view_state.export_open.get() { "Close export" } else { "Export" }}
-                </ActionButton>
+                </button>
             </WorkspaceHeader>
 
             {move || {
                 if session.segments.get().is_empty() {
                     return view! {
-                        <Empty>
-                            <EmptyHeader>
-                                <EmptyTitle>"No transcript available"</EmptyTitle>
-                                <EmptyDescription>
-                                    "Complete a transcription run before opening the transcript review screen."
-                                </EmptyDescription>
-                            </EmptyHeader>
-                            <EmptyContent>
-                                <p class="text-sm text-zinc-400">"The review workspace will open here once segments are available."</p>
-                            </EmptyContent>
-                        </Empty>
+                        <div class="rounded-[1.5rem] border border-dashed border-zinc-300 bg-zinc-100/80 px-6 py-12 text-center dark:border-zinc-800 dark:bg-[#121316]">
+                            <p class="text-base font-medium text-zinc-950 dark:text-zinc-100">"No transcript available"</p>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-500">
+                                "Complete a transcription run before opening the transcript review screen."
+                            </p>
+                        </div>
                     }
                     .into_any();
                 }
@@ -163,74 +159,129 @@ pub fn TranscriptScreen() -> impl IntoView {
 
                 view! {
                     <>
-                        <Card class="border-zinc-800 bg-[#191919] text-zinc-50">
-                            <CardHeader class="space-y-4">
+                        <Show when=move || view_state.export_open.get()>
+                            <section class="self-end rounded-[1.25rem] border border-zinc-200 bg-white px-4 py-4 dark:border-zinc-900 dark:bg-[#141519]">
                                 <div class="flex flex-wrap items-center gap-2">
+                                    {[("txt", "TXT"), ("srt", "SRT")]
+                                        .into_iter()
+                                        .map(|(value, label)| {
+                                            view! {
+                                                <button
+                                                    class=move || {
+                                                        if view_state.export_format.get() == value {
+                                                            "rounded-lg border border-zinc-300 bg-zinc-950 px-3 py-2 text-sm font-medium text-white dark:border-zinc-700 dark:bg-zinc-100 dark:text-zinc-950"
+                                                        } else {
+                                                            "rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-300 dark:hover:bg-[#17181b]"
+                                                        }
+                                                    }
+                                                    on:click=move |_| view_state.export_format.set(value.into())
+                                                    type="button"
+                                                >
+                                                    {label}
+                                                </button>
+                                            }
+                                        })
+                                        .collect_view()}
+                                    <span class="inline-flex items-center rounded-full border border-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
+                                        "DOCX deferred"
+                                    </span>
                                     <button
-                                        class=move || if view_state.speaker_filter.get().is_empty() {
-                                            "rounded-full border border-zinc-500 bg-zinc-900 px-3 py-1.5 text-sm text-zinc-50"
-                                        } else {
-                                            "rounded-full border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:border-zinc-600 hover:text-zinc-50"
-                                        }
-                                        on:click=move |_| view_state.speaker_filter.set(String::new())
+                                        class="inline-flex h-9 items-center rounded-lg bg-zinc-950 px-3 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                                        on:click=move |_| run_export.run(())
                                         type="button"
                                     >
-                                        "All speakers"
+                                        {move || format!("Export {}", view_state.export_format.get().to_uppercase())}
                                     </button>
-                                    {speaker_names().into_iter().map(|speaker| {
-                                        let speaker_label = speaker.clone();
-                                        let speaker_filter_value = speaker.clone();
-                                        let speaker_click_value = speaker.clone();
-                                        let tone = speaker_palette(&speaker);
-                                        view! {
-                                            <button
-                                                class=move || {
-                                                    let active = view_state.speaker_filter.get() == speaker_filter_value;
-                                                    if active {
-                                                        "rounded-full border bg-zinc-900 px-3 py-1.5 text-sm text-zinc-50".to_string()
-                                                    } else {
-                                                        "rounded-full border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 transition hover:border-zinc-600 hover:text-zinc-50".into()
-                                                    }
-                                                }
-                                                on:click={
-                                                    let speaker_click_value = speaker_click_value.clone();
-                                                    move |_| view_state.speaker_filter.set(speaker_click_value.clone())
-                                                }
-                                                style=format!("border-color:{};", tone.1)
-                                                type="button"
-                                            >
-                                                {speaker_label}
-                                            </button>
-                                        }
-                                    }).collect_view()}
                                 </div>
-                                <CardDescription>
-                                    "Switch between speaker-grouped reading, chronological review, and raw copy-ready text."
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent class="space-y-6">
-                                <Tabs value=view_state.active_tab>
-                                    <TabsList class="flex flex-wrap gap-2">
-                                        <TabsTrigger value="speakers">"Speakers"</TabsTrigger>
-                                        <TabsTrigger value="timeline">"Timeline"</TabsTrigger>
-                                        <TabsTrigger value="raw">"Raw"</TabsTrigger>
-                                    </TabsList>
+                                <Show when=move || view_state.export_message.get().is_some()>
+                                    <p class="mt-3 text-sm text-zinc-600 dark:text-zinc-400">
+                                        {move || view_state.export_message.get().unwrap_or_default()}
+                                    </p>
+                                </Show>
+                            </section>
+                        </Show>
 
-                                    <TabsContent value="speakers" class="pt-6">
+                        <section class="rounded-[1.5rem] border border-zinc-200 bg-white px-5 py-5 dark:border-zinc-900 dark:bg-[#141519]">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button
+                                    class=move || if view_state.speaker_filter.get().is_empty() {
+                                        "rounded-full border border-zinc-300 bg-zinc-950 px-3 py-1.5 text-sm font-medium text-white dark:border-zinc-700 dark:bg-zinc-100 dark:text-zinc-950"
+                                    } else {
+                                        "rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-300 dark:hover:bg-[#17181b]"
+                                    }
+                                    on:click=move |_| view_state.speaker_filter.set(String::new())
+                                    type="button"
+                                >
+                                    "All speakers"
+                                </button>
+                                {speaker_names().into_iter().map(|speaker| {
+                                    let tone = speaker_palette(&speaker);
+                                    let button_speaker = speaker.clone();
+                                    let active_speaker = speaker.clone();
+                                    view! {
+                                        <button
+                                            class=move || {
+                                                let active = view_state.speaker_filter.get() == active_speaker;
+                                                if active {
+                                                    "rounded-full border px-3 py-1.5 text-sm font-medium text-zinc-950 dark:text-zinc-950".to_string()
+                                                } else {
+                                                    "rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-300 dark:hover:bg-[#17181b]".into()
+                                                }
+                                            }
+                                            on:click={
+                                                let button_speaker = button_speaker.clone();
+                                                move |_| view_state.speaker_filter.set(button_speaker.clone())
+                                            }
+                                            style=move || {
+                                                if view_state.speaker_filter.get() == speaker {
+                                                    format!("background:{}; border-color:{}; color:{};", tone.0, tone.1, tone.1)
+                                                } else {
+                                                    String::new()
+                                                }
+                                            }
+                                            type="button"
+                                        >
+                                            {speaker.clone()}
+                                        </button>
+                                    }
+                                }).collect_view()}
+                            </div>
+
+                            <div class="mt-5 border-b border-zinc-200 dark:border-zinc-900">
+                                <div class="flex gap-6">
+                                    {[("speakers", "Speakers"), ("timeline", "Timeline"), ("raw", "Raw")]
+                                        .into_iter()
+                                        .map(|(value, label)| {
+                                            view! {
+                                                <button
+                                                    class=move || {
+                                                        if view_state.active_tab.get() == value {
+                                                            "border-b-2 border-zinc-950 pb-3 text-sm font-medium text-zinc-950 dark:border-zinc-100 dark:text-zinc-100"
+                                                        } else {
+                                                            "border-b-2 border-transparent pb-3 text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-200"
+                                                        }
+                                                    }
+                                                    on:click=move |_| view_state.active_tab.set(value.into())
+                                                    type="button"
+                                                >
+                                                    {label}
+                                                </button>
+                                            }
+                                        })
+                                        .collect_view()}
+                                </div>
+                            </div>
+
+                            <div class="mt-5">
+                                {move || match view_state.active_tab.get().as_str() {
+                                    "timeline" => view! {
                                         <div class="space-y-4">
-                                            {speaker_segments.into_iter().map(render_speaker_segment).collect_view()}
+                                            {timeline_segments.clone().into_iter().map(render_timeline_segment).collect_view()}
                                         </div>
-                                    </TabsContent>
-
-                                    <TabsContent value="timeline" class="pt-6">
-                                        <div class="space-y-4">
-                                            {timeline_segments.into_iter().map(render_timeline_segment).collect_view()}
-                                        </div>
-                                    </TabsContent>
-
-                                    <TabsContent value="raw" class="pt-6">
-                                        <pre class="overflow-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-5 text-sm leading-7 text-zinc-200">
-                                            {raw_segments
+                                    }.into_any(),
+                                    "raw" => view! {
+                                        <pre class="overflow-auto rounded-2xl border border-zinc-200 bg-zinc-100/80 p-5 text-sm leading-7 text-zinc-900 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-100">
+                                            {raw_segments.clone()
                                                 .into_iter()
                                                 .map(|segment| {
                                                     format!(
@@ -243,54 +294,15 @@ pub fn TranscriptScreen() -> impl IntoView {
                                                 })
                                                 .collect::<String>()}
                                         </pre>
-                                    </TabsContent>
-                                </Tabs>
-                            </CardContent>
-                        </Card>
-
-                        <Show when=move || view_state.export_open.get()>
-                            <Card class="border-zinc-800 bg-[#191919] text-zinc-50">
-                                <CardHeader>
-                                    <CardTitle>"Export panel"</CardTitle>
-                                    <CardDescription>
-                                        "Choose the output format and keep the review screen open while export is prepared."
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent class="flex flex-wrap items-center gap-3">
-                                    <button
-                                        class=move || if view_state.export_format.get() == "txt" {
-                                            "rounded-xl border border-zinc-500 bg-zinc-900 px-3 py-2 text-sm text-zinc-50"
-                                        } else {
-                                            "rounded-xl border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition hover:border-zinc-600 hover:text-zinc-50"
-                                        }
-                                        on:click=move |_| view_state.export_format.set("txt".into())
-                                        type="button"
-                                    >
-                                        "TXT"
-                                    </button>
-                                    <button
-                                        class=move || if view_state.export_format.get() == "srt" {
-                                            "rounded-xl border border-zinc-500 bg-zinc-900 px-3 py-2 text-sm text-zinc-50"
-                                        } else {
-                                            "rounded-xl border border-zinc-700 px-3 py-2 text-sm text-zinc-300 transition hover:border-zinc-600 hover:text-zinc-50"
-                                        }
-                                        on:click=move |_| view_state.export_format.set("srt".into())
-                                        type="button"
-                                    >
-                                        "SRT"
-                                    </button>
-                                    <Badge variant="outline">"DOCX deferred"</Badge>
-                                    <ActionButton on_click=run_export>
-                                        {move || format!("Export {}", view_state.export_format.get().to_uppercase())}
-                                    </ActionButton>
-                                    <Show when=move || view_state.export_message.get().is_some()>
-                                        <p class="text-sm text-zinc-400">
-                                            {move || view_state.export_message.get().unwrap_or_default()}
-                                        </p>
-                                    </Show>
-                                </CardContent>
-                            </Card>
-                        </Show>
+                                    }.into_any(),
+                                    _ => view! {
+                                        <div class="space-y-4">
+                                            {speaker_segments.clone().into_iter().map(render_speaker_segment).collect_view()}
+                                        </div>
+                                    }.into_any(),
+                                }}
+                            </div>
+                        </section>
                     </>
                 }
                 .into_any()
@@ -302,29 +314,34 @@ pub fn TranscriptScreen() -> impl IntoView {
 fn render_speaker_segment(segment: TranscriptSegment) -> impl IntoView {
     let (background, foreground) = speaker_palette(&segment.speaker);
     view! {
-        <div class="space-y-2 rounded-2xl border border-zinc-800 bg-[#141414] p-4">
-            <div class="flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+        <div class="rounded-2xl border border-zinc-200 bg-zinc-100/70 px-4 py-4 dark:border-zinc-800 dark:bg-[#101114]">
+            <div class="flex gap-4">
                 <div
-                    class="flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold"
+                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
                     style=format!("background:{}; color:{};", background, foreground)
                 >
                     {segment.speaker.chars().next().unwrap_or('S').to_string()}
                 </div>
-                <SpeakerPill name=segment.speaker.clone()/>
-                <span>{format!("{} -> {}", format_mm_ss(segment.start_s), format_mm_ss(segment.end_s))}</span>
+                <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-3 text-[11px] text-zinc-500 dark:text-zinc-500">
+                        <span class="font-medium" style=format!("color:{};", foreground)>{segment.speaker.clone()}</span>
+                        <span>{format!("{} -> {}", format_mm_ss(segment.start_s), format_mm_ss(segment.end_s))}</span>
+                    </div>
+                    <p class="mt-2 text-sm leading-7 text-zinc-900 dark:text-zinc-100">{segment.text}</p>
+                </div>
             </div>
-            <p class="text-base leading-8 text-zinc-100">{segment.text}</p>
         </div>
     }
 }
 
 fn render_timeline_segment(segment: TranscriptSegment) -> impl IntoView {
+    let (_, foreground) = speaker_palette(&segment.speaker);
     view! {
-        <div class="grid gap-2 rounded-2xl border border-zinc-800 bg-[#141414] p-4 md:grid-cols-[7rem_1fr]">
-            <div class="text-sm font-semibold text-zinc-300">{format_mm_ss(segment.start_s)}</div>
-            <div class="space-y-2">
-                <SpeakerPill name=segment.speaker.clone()/>
-                <p class="text-sm leading-7 text-zinc-100">{segment.text}</p>
+        <div class="grid gap-3 rounded-2xl border border-zinc-200 bg-zinc-100/70 px-4 py-4 md:grid-cols-[7rem_1fr] dark:border-zinc-800 dark:bg-[#101114]">
+            <div class="text-sm font-medium text-zinc-600 dark:text-zinc-400">{format_mm_ss(segment.start_s)}</div>
+            <div>
+                <p class="text-[11px] font-medium uppercase tracking-[0.18em]" style=format!("color:{};", foreground)>{segment.speaker.clone()}</p>
+                <p class="mt-2 text-sm leading-7 text-zinc-900 dark:text-zinc-100">{segment.text}</p>
             </div>
         </div>
     }
