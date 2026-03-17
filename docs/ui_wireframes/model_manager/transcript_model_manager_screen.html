@@ -1,0 +1,280 @@
+
+<style>
+.state-nav { display:flex; gap:8px; padding:0 0 16px; flex-wrap:wrap; }
+.state-btn { padding:6px 14px; border-radius:20px; border:1px solid var(--color-border-secondary); font-size:12px; cursor:pointer; color:var(--color-text-secondary); background:transparent; transition:all .15s; }
+.state-btn.active { background:var(--color-text-primary); color:var(--color-background-primary); border-color:var(--color-text-primary); }
+
+.mockup { border:1px solid var(--color-border-tertiary); border-radius:12px; overflow:hidden; background:var(--color-background-primary); }
+.titlebar { height:32px; background:var(--color-background-secondary); display:flex; align-items:center; padding:0 12px; gap:6px; border-bottom:1px solid var(--color-border-tertiary); }
+.tb-dot { width:10px; height:10px; border-radius:50%; }
+.tb-title { font-size:11px; color:var(--color-text-tertiary); margin:0 auto; }
+
+.app-shell { display:flex; height:520px; }
+.sidebar { width:48px; background:var(--color-background-secondary); border-right:1px solid var(--color-border-tertiary); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:4px; flex-shrink:0; }
+.nav-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.nav-icon.active { background:var(--color-background-primary); }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+.topbar { height:44px; border-bottom:1px solid var(--color-border-tertiary); display:flex; align-items:center; padding:0 20px; flex-shrink:0; }
+.content { flex:1; padding:16px 20px; overflow:auto; }
+
+/* hardware banner */
+.hw-banner { display:flex; gap:10px; padding:10px 14px; background:var(--color-background-secondary); border-radius:10px; margin-bottom:16px; }
+.hw-item { flex:1; text-align:center; }
+.hw-val { font-size:14px; font-weight:500; }
+.hw-lbl { font-size:10px; color:var(--color-text-tertiary); margin-top:2px; }
+
+/* storage bar */
+.storage-section { margin-bottom:16px; }
+.storage-header { display:flex; justify-content:space-between; font-size:11px; color:var(--color-text-secondary); margin-bottom:5px; }
+.storage-track { height:5px; border-radius:3px; background:var(--color-border-tertiary); overflow:hidden; }
+.storage-fill { height:100%; border-radius:3px; background:var(--color-text-secondary); transition:width .4s; }
+
+/* model cards */
+.model-card { border:1px solid var(--color-border-tertiary); border-radius:10px; margin-bottom:10px; overflow:hidden; transition:border-color .15s; }
+.model-card.active-model { border-color:var(--color-text-primary); }
+.model-header { padding:12px 14px; }
+.model-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px; }
+.model-name { font-size:13px; font-weight:500; }
+.model-detail { font-size:11px; color:var(--color-text-secondary); line-height:1.5; }
+.badges { display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+.badge { padding:2px 7px; border-radius:4px; font-size:10px; font-weight:500; }
+.badge-green { background:var(--color-background-success); color:var(--color-text-success); }
+.badge-blue { background:var(--color-background-info); color:var(--color-text-info); }
+.badge-gray { background:var(--color-background-secondary); color:var(--color-text-secondary); border:1px solid var(--color-border-tertiary); }
+.badge-active { background:var(--color-text-primary); color:var(--color-background-primary); }
+
+/* actions row */
+.model-actions { display:flex; gap:8px; padding:10px 14px; border-top:1px solid var(--color-border-tertiary); background:var(--color-background-secondary); }
+.btn-sm { height:30px; padding:0 12px; border-radius:6px; font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer; flex-shrink:0; }
+.btn-sm-pri { background:var(--color-text-primary); color:var(--color-background-primary); font-weight:500; }
+.btn-sm-sec { border:1px solid var(--color-border-secondary); color:var(--color-text-secondary); }
+.btn-sm-danger { border:1px solid var(--color-border-tertiary); color:var(--color-text-danger,#dc2626); }
+
+/* download progress */
+.dl-section { padding:10px 14px; border-top:1px solid var(--color-border-tertiary); }
+.dl-header { display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; }
+.dl-track { height:4px; border-radius:2px; background:var(--color-border-tertiary); overflow:hidden; margin-bottom:4px; }
+.dl-fill { height:100%; border-radius:2px; background:var(--color-text-primary); transition:width .3s; }
+.dl-meta { font-size:10px; color:var(--color-text-tertiary); }
+
+/* anno */
+.anno-wrap { margin-top:20px; }
+.anno-title { font-size:12px; font-weight:500; color:var(--color-text-secondary); margin-bottom:10px; }
+.anno-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.anno-card { padding:10px 12px; border-radius:8px; border:1px solid var(--color-border-tertiary); }
+.anno-name { font-size:12px; font-weight:500; margin-bottom:3px; }
+.anno-desc { font-size:11px; color:var(--color-text-secondary); line-height:1.5; }
+.anno-code { font-size:10px; font-family:var(--font-mono); color:var(--color-text-tertiary); margin-top:4px; }
+</style>
+
+<div>
+<div class="state-nav">
+  <button class="state-btn active" onclick="setMMState('default')">Default</button>
+  <button class="state-btn" onclick="setMMState('downloading')">Downloading VibeVoice</button>
+  <button class="state-btn" onclick="setMMState('vibevoice-ready')">VibeVoice downloaded</button>
+</div>
+
+<div class="mockup">
+  <div class="titlebar">
+    <div class="tb-dot" style="background:#f96"></div>
+    <div class="tb-dot" style="background:#fc3"></div>
+    <div class="tb-dot" style="background:#6c6"></div>
+    <div class="tb-title">Transcript — Models</div>
+  </div>
+  <div class="app-shell">
+    <div class="sidebar">
+      <div class="nav-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7l6-5 6 5v7H10v-4H6v4H2V7z" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="nav-icon active">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-text-primary)" stroke-width="1.2"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke="var(--color-text-primary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="nav-icon" style="margin-top:auto">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="var(--color-text-secondary)" stroke-width="1.2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div style="font-size:14px;font-weight:500">Models</div>
+      </div>
+      <div class="content">
+
+        <!-- Hardware banner -->
+        <div class="hw-banner">
+          <div class="hw-item"><div class="hw-val">32 GB</div><div class="hw-lbl">RAM</div></div>
+          <div class="hw-item"><div class="hw-val">i7-10610U</div><div class="hw-lbl">CPU</div></div>
+          <div class="hw-item"><div class="hw-val">No GPU</div><div class="hw-lbl">VRAM</div></div>
+          <div class="hw-item"><div class="hw-val" id="hw-tier">Standard</div><div class="hw-lbl">Tier</div></div>
+        </div>
+
+        <!-- Storage -->
+        <div class="storage-section">
+          <div class="storage-header">
+            <span id="storage-used">2.7 GB used</span>
+            <span id="storage-free">32.3 GB free · ~/Library/Application Support/transcript</span>
+          </div>
+          <div class="storage-track"><div class="storage-fill" id="storage-fill" style="width:8%"></div></div>
+        </div>
+
+        <!-- Whisper Tiny -->
+        <div class="model-card active-model" id="card-tiny">
+          <div class="model-header">
+            <div class="model-top">
+              <div class="model-name">Whisper Tiny</div>
+              <span class="badge badge-active">Active</span>
+            </div>
+            <div class="model-detail">150 MB · Bundled · FR + EN + Multilingual</div>
+            <div class="badges">
+              <span class="badge badge-green">Bundled</span>
+              <span class="badge badge-gray">No diarization</span>
+            </div>
+          </div>
+          <div class="model-actions">
+            <div class="btn-sm btn-sm-sec" style="opacity:0.4;cursor:not-allowed">Use</div>
+            <div style="font-size:11px;color:var(--color-text-tertiary);display:flex;align-items:center;margin-left:4px">Currently active</div>
+          </div>
+        </div>
+
+        <!-- VibeVoice INT8 -->
+        <div class="model-card" id="card-vibevoice">
+          <div class="model-header">
+            <div class="model-top">
+              <div class="model-name">VibeVoice INT8</div>
+              <span class="badge badge-blue" id="vv-badge">Recommended</span>
+            </div>
+            <div class="model-detail">8.5 GB · FR + EN · Joint ASR + diarization</div>
+            <div class="badges">
+              <span class="badge badge-green">Diarization ✓</span>
+              <span class="badge badge-gray">Requires 9 GB RAM</span>
+            </div>
+          </div>
+          <div id="vv-dl-section" style="display:none" class="dl-section">
+            <div class="dl-header">
+              <span id="vv-dl-label">Downloading…</span>
+              <span id="vv-dl-pct">37%</span>
+            </div>
+            <div class="dl-track"><div class="dl-fill" id="vv-dl-fill" style="width:37%"></div></div>
+            <div class="dl-meta" id="vv-dl-meta">3.1 / 8.5 GB · 12.3 MB/s · ETA 08:44</div>
+          </div>
+          <div class="model-actions" id="vv-actions">
+            <div class="btn-sm btn-sm-pri" id="vv-primary-btn">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1.5v5M5.5 6.5l-2-2M5.5 6.5l2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.5 8.5h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              Download — 8.5 GB
+            </div>
+            <div class="btn-sm btn-sm-sec" id="vv-hf-btn" style="font-size:11px">View on HuggingFace</div>
+          </div>
+        </div>
+
+        <!-- Whisper Large v3 -->
+        <div class="model-card" id="card-large">
+          <div class="model-header">
+            <div class="model-top">
+              <div class="model-name">Whisper Large v3</div>
+              <span class="badge badge-gray">Available</span>
+            </div>
+            <div class="model-detail">3.1 GB · Multilingual · High accuracy</div>
+            <div class="badges">
+              <span class="badge badge-gray">No diarization</span>
+              <span class="badge badge-gray">99 languages</span>
+            </div>
+          </div>
+          <div class="model-actions">
+            <div class="btn-sm btn-sm-pri">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1.5v5M5.5 6.5l-2-2M5.5 6.5l2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.5 8.5h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              Download — 3.1 GB
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Annotations -->
+<div class="anno-wrap">
+  <div class="anno-title">Leptos components + IPC</div>
+  <div class="anno-grid">
+    <div class="anno-card">
+      <div class="anno-name">ModelCard</div>
+      <div class="anno-desc">Composant générique rendu depuis le registre TOML. État (bundled / available / downloading / ready) via <code>RwSignal&lt;ModelStatus&gt;</code>.</div>
+      <div class="anno-code">components/model_card.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">DownloadProgress</div>
+      <div class="anno-desc">Écoute l'event Tauri <code>download_progress</code> filtré par <code>model_id</code>. Barre + vitesse + ETA calculés localement.</div>
+      <div class="anno-code">components/download_progress.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">StorageBar</div>
+      <div class="anno-desc">Lit la somme des tailles de tous les modèles downloaded via <code>get_models</code> au mount. Se met à jour après chaque download ou suppression.</div>
+      <div class="anno-code">components/storage_bar.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">HardwareBanner</div>
+      <div class="anno-desc">Signal global <code>hardware_info</code> chargé au démarrage via <code>get_hardware_info</code>. Affiché en lecture seule, pas d'IPC au mount.</div>
+      <div class="anno-code">components/hardware_banner.rs</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+function setMMState(s) {
+  document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const vvDl = document.getElementById('vv-dl-section');
+  const vvActions = document.getElementById('vv-actions');
+  const vvBadge = document.getElementById('vv-badge');
+  const vvBtn = document.getElementById('vv-primary-btn');
+  const cardVV = document.getElementById('card-vibevoice');
+  const cardTiny = document.getElementById('card-tiny');
+  const storageFill = document.getElementById('storage-fill');
+  const storageUsed = document.getElementById('storage-used');
+
+  // reset
+  vvDl.style.display = 'none';
+  vvActions.style.display = 'flex';
+  cardVV.classList.remove('active-model');
+  cardTiny.classList.add('active-model');
+
+  if (s === 'default') {
+    vvBadge.textContent = 'Recommended';
+    vvBadge.className = 'badge badge-blue';
+    vvBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1.5v5M5.5 6.5l-2-2M5.5 6.5l2-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.5 8.5h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Download — 8.5 GB`;
+    storageFill.style.width = '8%';
+    storageUsed.textContent = '2.7 GB used';
+
+  } else if (s === 'downloading') {
+    vvDl.style.display = 'block';
+    vvBadge.textContent = 'Downloading';
+    vvBadge.className = 'badge badge-gray';
+    document.getElementById('vv-dl-fill').style.width = '37%';
+    document.getElementById('vv-dl-pct').textContent = '37%';
+    document.getElementById('vv-dl-meta').textContent = '3.1 / 8.5 GB · 12.3 MB/s · ETA 08:44';
+    vvBtn.innerHTML = `Cancel download`;
+    vvBtn.className = 'btn-sm btn-sm-sec';
+    storageFill.style.width = '18%';
+    storageUsed.textContent = '6.0 GB used';
+
+  } else if (s === 'vibevoice-ready') {
+    vvBadge.textContent = 'Active';
+    vvBadge.className = 'badge badge-active';
+    cardVV.classList.add('active-model');
+    cardTiny.classList.remove('active-model');
+    document.getElementById('card-tiny').querySelector('.badge-active').className = 'badge badge-green';
+    vvBtn.innerHTML = `Use`;
+    vvBtn.className = 'btn-sm btn-sm-sec';
+    document.getElementById('vv-hf-btn').style.display = 'none';
+    vvActions.innerHTML = `
+      <div class="btn-sm btn-sm-sec" style="opacity:0.4;cursor:not-allowed">Use</div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);display:flex;align-items:center;margin-left:4px">Currently active</div>
+      <div class="btn-sm btn-sm-danger" style="margin-left:auto">Delete</div>`;
+    storageFill.style.width = '32%';
+    storageUsed.textContent = '11.2 GB used';
+  }
+}
+</script>

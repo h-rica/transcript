@@ -1,0 +1,246 @@
+
+<style>
+.home-wrap { display:flex; flex-direction:column; gap:0; }
+.state-nav { display:flex; gap:8px; padding:0 0 16px; }
+.state-btn { padding:6px 14px; border-radius:20px; border:1px solid var(--color-border-secondary); font-size:12px; cursor:pointer; color:var(--color-text-secondary); background:transparent; transition:all .15s; }
+.state-btn.active { background:var(--color-text-primary); color:var(--color-background-primary); border-color:var(--color-text-primary); }
+
+.mockup { width:100%; border:1px solid var(--color-border-tertiary); border-radius:12px; overflow:hidden; background:var(--color-background-primary); }
+.titlebar { height:32px; background:var(--color-background-secondary); display:flex; align-items:center; padding:0 12px; gap:6px; border-bottom:1px solid var(--color-border-tertiary); }
+.tb-dot { width:10px; height:10px; border-radius:50%; }
+.tb-title { font-size:11px; color:var(--color-text-tertiary); margin:0 auto; }
+
+/* sidebar */
+.app-shell { display:flex; height:480px; }
+.sidebar { width:48px; background:var(--color-background-secondary); border-right:1px solid var(--color-border-tertiary); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:4px; flex-shrink:0; }
+.nav-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background .12s; }
+.nav-icon:hover { background:var(--color-border-tertiary); }
+.nav-icon.active { background:var(--color-background-primary); }
+.nav-sep { height:1px; background:var(--color-border-tertiary); width:24px; margin:4px 0; }
+
+/* main area */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.topbar { height:44px; border-bottom:1px solid var(--color-border-tertiary); display:flex; align-items:center; padding:0 20px; justify-content:space-between; flex-shrink:0; }
+.search-mock { display:flex; align-items:center; gap:8px; height:28px; border-radius:6px; border:1px solid var(--color-border-tertiary); padding:0 10px; background:var(--color-background-secondary); }
+.content { flex:1; padding:20px; overflow:auto; }
+
+/* drop zone states */
+.drop-zone { border:1.5px dashed var(--color-border-secondary); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; transition:all .2s; cursor:pointer; }
+.drop-zone.dragging { border-color:var(--color-text-primary); background:var(--color-background-secondary); border-style:solid; }
+.drop-zone.dragging .dz-icon { background:var(--color-text-primary); }
+.drop-zone.dragging .dz-icon svg path, .drop-zone.dragging .dz-icon svg rect { stroke:var(--color-background-primary); }
+
+.dz-icon { width:40px; height:40px; border-radius:10px; background:var(--color-background-secondary); display:flex; align-items:center; justify-content:center; transition:background .2s; }
+.dz-label { font-size:13px; font-weight:500; color:var(--color-text-primary); }
+.dz-sub { font-size:11px; color:var(--color-text-tertiary); }
+.dz-btn { height:28px; padding:0 14px; border-radius:6px; border:1px solid var(--color-border-secondary); font-size:12px; display:flex; align-items:center; cursor:pointer; color:var(--color-text-secondary); }
+
+/* recent list */
+.section-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.recent-row { display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; cursor:pointer; transition:background .12s; }
+.recent-row:hover { background:var(--color-background-secondary); }
+.r-thumb { width:36px; height:36px; border-radius:7px; background:var(--color-background-secondary); border:1px solid var(--color-border-tertiary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.r-name { font-size:13px; font-weight:500; margin-bottom:2px; }
+.r-meta { font-size:11px; color:var(--color-text-secondary); }
+.r-badge { padding:1px 6px; border-radius:4px; font-size:10px; font-weight:500; margin-left:6px; }
+.r-badge-v { background:var(--color-background-info); color:var(--color-text-info); }
+.r-badge-w { background:var(--color-background-secondary); color:var(--color-text-secondary); }
+.r-time { font-size:11px; color:var(--color-text-tertiary); margin-left:auto; flex-shrink:0; }
+.r-arrow { color:var(--color-text-tertiary); font-size:12px; margin-left:4px; }
+
+/* empty state */
+.empty-state { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:32px 0; }
+
+/* component annotations */
+.anno-wrap { margin-top:20px; }
+.anno-title { font-size:12px; font-weight:500; color:var(--color-text-secondary); margin-bottom:10px; }
+.anno-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.anno-card { padding:10px 12px; border-radius:8px; border:1px solid var(--color-border-tertiary); }
+.anno-name { font-size:12px; font-weight:500; margin-bottom:3px; }
+.anno-desc { font-size:11px; color:var(--color-text-secondary); line-height:1.5; }
+.anno-code { font-size:10px; font-family:var(--font-mono); color:var(--color-text-tertiary); margin-top:4px; }
+</style>
+
+<div class="home-wrap">
+  <div class="state-nav">
+    <button class="state-btn active" onclick="setState('recents')">Has recents</button>
+    <button class="state-btn" onclick="setState('empty')">Empty</button>
+    <button class="state-btn" onclick="setState('dragging')">Dragging</button>
+  </div>
+
+  <div class="mockup">
+    <div class="titlebar">
+      <div class="tb-dot" style="background:#f96"></div>
+      <div class="tb-dot" style="background:#fc3"></div>
+      <div class="tb-dot" style="background:#6c6"></div>
+      <div class="tb-title">Transcript</div>
+    </div>
+    <div class="app-shell">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="nav-icon active" title="Home">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7l6-5 6 5v7H10v-4H6v4H2V7z" stroke="var(--color-text-primary)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="nav-icon" title="Models">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-text-secondary)" stroke-width="1.2"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="nav-sep"></div>
+        <div class="nav-icon" title="Settings" style="margin-top:auto">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="var(--color-text-secondary)" stroke-width="1.2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+
+      <!-- Main -->
+      <div class="main">
+        <div class="topbar">
+          <div style="font-size:14px;font-weight:500">Transcribe</div>
+          <div class="search-mock">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="5" cy="5" r="3.5" stroke="var(--color-text-tertiary)" stroke-width="1.2"/><path d="M8 8l2.5 2.5" stroke="var(--color-text-tertiary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span style="font-size:12px;color:var(--color-text-tertiary)">Search transcripts…</span>
+          </div>
+        </div>
+
+        <div class="content">
+          <!-- Drop zone -->
+          <div class="drop-zone" id="dz" style="height:130px;margin-bottom:20px">
+            <div class="dz-icon" id="dz-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 13V4M10 4L7 7M10 4L13 7" stroke="var(--color-text-secondary)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 14v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="var(--color-text-secondary)" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </div>
+            <div class="dz-label" id="dz-label">Drop audio file here</div>
+            <div class="dz-sub" id="dz-sub">MP3 · WAV · M4A — up to 2 hours</div>
+            <div class="dz-btn" id="dz-btn">Browse files</div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="empty-state" id="empty-state" style="display:none">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="8" y="6" width="24" height="28" rx="4" stroke="var(--color-border-secondary)" stroke-width="1.5"/><path d="M14 16h12M14 21h8M14 26h6" stroke="var(--color-border-secondary)" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <div style="font-size:13px;font-weight:500;color:var(--color-text-secondary)">No transcripts yet</div>
+            <div style="font-size:12px;color:var(--color-text-tertiary)">Drop an audio file above to get started</div>
+          </div>
+
+          <!-- Recents -->
+          <div id="recents-section">
+            <div class="section-head">
+              <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary)">Recent</div>
+              <div style="font-size:11px;color:var(--color-text-tertiary);cursor:pointer">View all</div>
+            </div>
+
+            <div class="recent-row">
+              <div class="r-thumb">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-text-tertiary)" stroke-width="1.1"/><path d="M6 6l4 2-4 2V6z" fill="var(--color-text-tertiary)"/></svg>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div class="r-name">interview_2026_03.mp3
+                  <span class="r-badge r-badge-v">VibeVoice</span>
+                </div>
+                <div class="r-meta">24:38 · French · 2 speakers</div>
+              </div>
+              <div class="r-time">3h ago</div>
+              <div class="r-arrow">›</div>
+            </div>
+
+            <div class="recent-row">
+              <div class="r-thumb">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-text-tertiary)" stroke-width="1.1"/><path d="M6 6l4 2-4 2V6z" fill="var(--color-text-tertiary)"/></svg>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div class="r-name">meeting_recording.wav
+                  <span class="r-badge r-badge-w">Whisper</span>
+                </div>
+                <div class="r-meta">1:02:14 · English · 4 speakers</div>
+              </div>
+              <div class="r-time">Yesterday</div>
+              <div class="r-arrow">›</div>
+            </div>
+
+            <div class="recent-row">
+              <div class="r-thumb">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-text-tertiary)" stroke-width="1.1"/><path d="M6 6l4 2-4 2V6z" fill="var(--color-text-tertiary)"/></svg>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div class="r-name">podcast_ep42.m4a
+                  <span class="r-badge r-badge-v">VibeVoice</span>
+                </div>
+                <div class="r-meta">48:22 · French · 2 speakers</div>
+              </div>
+              <div class="r-time">2 days ago</div>
+              <div class="r-arrow">›</div>
+            </div>
+
+            <div class="recent-row">
+              <div class="r-thumb">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-text-tertiary)" stroke-width="1.1"/><path d="M6 6l4 2-4 2V6z" fill="var(--color-text-tertiary)"/></svg>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div class="r-name">conf_keynote.mp3
+                  <span class="r-badge r-badge-w">Whisper</span>
+                </div>
+                <div class="r-meta">58:10 · English · 1 speaker</div>
+              </div>
+              <div class="r-time">1 week ago</div>
+              <div class="r-arrow">›</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Component annotations -->
+  <div class="anno-wrap">
+    <div class="anno-title">Leptos components</div>
+    <div class="anno-grid">
+      <div class="anno-card">
+        <div class="anno-name">DropZone</div>
+        <div class="anno-desc">Gère drag-and-drop + click browse. Émet un signal <code>file_selected</code> vers le parent.</div>
+        <div class="anno-code">components/drop_zone.rs</div>
+      </div>
+      <div class="anno-card">
+        <div class="anno-name">RecentList</div>
+        <div class="anno-desc">Liste réactive des transcriptions récentes. Lecture depuis le store local (serde + toml).</div>
+        <div class="anno-code">components/recent_list.rs</div>
+      </div>
+      <div class="anno-card">
+        <div class="anno-name">Sidebar</div>
+        <div class="anno-desc">Navigation principale. Icônes Home / Models / Settings. Route active via Leptos Router.</div>
+        <div class="anno-code">components/sidebar.rs</div>
+      </div>
+      <div class="anno-card">
+        <div class="anno-name">SearchBar</div>
+        <div class="anno-desc">Filtre la liste des transcripts par nom. Signal réactif local, pas d'IPC requis.</div>
+        <div class="anno-code">components/search_bar.rs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function setState(s) {
+  document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const dz = document.getElementById('dz');
+  const dzLabel = document.getElementById('dz-label');
+  const dzSub = document.getElementById('dz-sub');
+  const dzBtn = document.getElementById('dz-btn');
+  const recents = document.getElementById('recents-section');
+  const empty = document.getElementById('empty-state');
+
+  dz.classList.remove('dragging');
+  dzLabel.textContent = 'Drop audio file here';
+  dzSub.textContent = 'MP3 · WAV · M4A — up to 2 hours';
+  dzBtn.style.display = 'flex';
+  recents.style.display = 'block';
+  empty.style.display = 'none';
+
+  if (s === 'empty') {
+    recents.style.display = 'none';
+    empty.style.display = 'flex';
+  } else if (s === 'dragging') {
+    dz.classList.add('dragging');
+    dzLabel.textContent = 'Release to transcribe';
+    dzSub.textContent = 'MP3 · WAV · M4A detected';
+    dzBtn.style.display = 'none';
+  }
+}
+</script>

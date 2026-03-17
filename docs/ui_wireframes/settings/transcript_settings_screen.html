@@ -1,0 +1,350 @@
+
+<style>
+.mockup { border:1px solid var(--color-border-tertiary); border-radius:12px; overflow:hidden; background:var(--color-background-primary); }
+.titlebar { height:32px; background:var(--color-background-secondary); display:flex; align-items:center; padding:0 12px; gap:6px; border-bottom:1px solid var(--color-border-tertiary); }
+.tb-dot { width:10px; height:10px; border-radius:50%; }
+.tb-title { font-size:11px; color:var(--color-text-tertiary); margin:0 auto; }
+
+.app-shell { display:flex; height:540px; }
+.sidebar { width:48px; background:var(--color-background-secondary); border-right:1px solid var(--color-border-tertiary); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:4px; flex-shrink:0; }
+.nav-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.nav-icon.active { background:var(--color-background-primary); }
+.main { flex:1; display:flex; overflow:hidden; }
+
+/* two-panel layout */
+.settings-nav { width:160px; border-right:1px solid var(--color-border-tertiary); padding:12px 8px; flex-shrink:0; }
+.s-nav-item { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:7px; font-size:13px; cursor:pointer; color:var(--color-text-secondary); transition:all .12s; margin-bottom:2px; }
+.s-nav-item:hover { background:var(--color-background-secondary); color:var(--color-text-primary); }
+.s-nav-item.active { background:var(--color-background-secondary); color:var(--color-text-primary); font-weight:500; }
+.s-nav-icon { width:26px; height:26px; border-radius:6px; background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+.settings-content { flex:1; overflow:auto; padding:20px; }
+.section-title { font-size:16px; font-weight:500; margin-bottom:4px; }
+.section-sub { font-size:12px; color:var(--color-text-secondary); margin-bottom:20px; }
+
+/* rows */
+.setting-group { margin-bottom:20px; }
+.group-label { font-size:10px; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:var(--color-text-tertiary); margin-bottom:8px; }
+.setting-row { display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--color-border-tertiary); gap:12px; }
+.setting-row:last-child { border-bottom:none; }
+.setting-info { flex:1; }
+.setting-label { font-size:13px; font-weight:500; margin-bottom:2px; }
+.setting-desc { font-size:11px; color:var(--color-text-secondary); line-height:1.4; }
+
+/* controls */
+.select-ctrl { height:30px; min-width:90px; border-radius:6px; border:1px solid var(--color-border-secondary); background:var(--color-background-secondary); display:flex; align-items:center; justify-content:space-between; padding:0 10px; font-size:12px; cursor:pointer; gap:6px; flex-shrink:0; }
+.toggle-wrap { width:36px; height:20px; border-radius:10px; position:relative; cursor:pointer; flex-shrink:0; transition:background .2s; }
+.toggle-wrap.on { background:var(--color-text-primary); }
+.toggle-wrap.off { background:var(--color-border-secondary); }
+.toggle-knob { position:absolute; top:3px; width:14px; height:14px; border-radius:50%; background:var(--color-background-primary); transition:left .2s; }
+.toggle-wrap.on .toggle-knob { left:19px; }
+.toggle-wrap.off .toggle-knob { left:3px; }
+.btn-sm { height:30px; padding:0 12px; border-radius:6px; font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer; border:1px solid var(--color-border-secondary); color:var(--color-text-secondary); flex-shrink:0; }
+.btn-danger { border-color:transparent; color:#dc2626; background:transparent; }
+.version-tag { font-size:11px; color:var(--color-text-tertiary); padding:3px 8px; border-radius:4px; background:var(--color-background-secondary); flex-shrink:0; }
+
+/* about section */
+.about-card { padding:14px; border:1px solid var(--color-border-tertiary); border-radius:10px; display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.app-icon { width:44px; height:44px; border-radius:10px; background:var(--color-background-secondary); border:1px solid var(--color-border-tertiary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+/* anno */
+.anno-wrap { margin-top:20px; }
+.anno-title { font-size:12px; font-weight:500; color:var(--color-text-secondary); margin-bottom:10px; }
+.anno-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.anno-card { padding:10px 12px; border-radius:8px; border:1px solid var(--color-border-tertiary); }
+.anno-name { font-size:12px; font-weight:500; margin-bottom:3px; }
+.anno-desc { font-size:11px; color:var(--color-text-secondary); line-height:1.5; }
+.anno-code { font-size:10px; font-family:var(--font-mono); color:var(--color-text-tertiary); margin-top:4px; }
+</style>
+
+<div>
+<div class="mockup">
+  <div class="titlebar">
+    <div class="tb-dot" style="background:#f96"></div>
+    <div class="tb-dot" style="background:#fc3"></div>
+    <div class="tb-dot" style="background:#6c6"></div>
+    <div class="tb-title">Transcript — Settings</div>
+  </div>
+  <div class="app-shell">
+    <div class="sidebar">
+      <div class="nav-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7l6-5 6 5v7H10v-4H6v4H2V7z" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="nav-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-text-secondary)" stroke-width="1.2"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="nav-icon active" style="margin-top:auto">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="var(--color-text-primary)" stroke-width="1.2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4" stroke="var(--color-text-primary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <div class="main">
+      <!-- Left nav -->
+      <div class="settings-nav">
+        <div class="s-nav-item active" id="snav-transcription" onclick="showSection('transcription')">
+          <div class="s-nav-icon">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 4h9M2 6.5h6M2 9h4" stroke="var(--color-text-primary)" stroke-width="1.1" stroke-linecap="round"/></svg>
+          </div>
+          Transcription
+        </div>
+        <div class="s-nav-item" id="snav-export" onclick="showSection('export')">
+          <div class="s-nav-icon">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5v6M6.5 7.5l-2-2M6.5 7.5l2-2" stroke="var(--color-text-secondary)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M1.5 9.5h10" stroke="var(--color-text-secondary)" stroke-width="1.1" stroke-linecap="round"/></svg>
+          </div>
+          Export
+        </div>
+        <div class="s-nav-item" id="snav-privacy" onclick="showSection('privacy')">
+          <div class="s-nav-icon">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5L2 3.5v3c0 2.5 2 4.5 4.5 5 2.5-.5 4.5-2.5 4.5-5v-3L6.5 1.5z" stroke="var(--color-text-secondary)" stroke-width="1.1" stroke-linejoin="round"/></svg>
+          </div>
+          Privacy
+        </div>
+        <div class="s-nav-item" id="snav-about" onclick="showSection('about')">
+          <div class="s-nav-icon">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="var(--color-text-secondary)" stroke-width="1.1"/><path d="M6.5 6v3.5M6.5 4v.5" stroke="var(--color-text-secondary)" stroke-width="1.1" stroke-linecap="round"/></svg>
+          </div>
+          About
+        </div>
+      </div>
+
+      <!-- Right content -->
+      <div class="settings-content">
+
+        <!-- Transcription -->
+        <div id="sec-transcription">
+          <div class="section-title">Transcription</div>
+          <div class="section-sub">Defaults applied to each new file</div>
+
+          <div class="setting-group">
+            <div class="group-label">Language</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Default language</div>
+                <div class="setting-desc">Override per file in the preview screen</div>
+              </div>
+              <div class="select-ctrl">French (FR)<span style="font-size:10px;color:var(--color-text-tertiary)">▾</span></div>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="group-label">Model</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Default model</div>
+                <div class="setting-desc">Auto selects based on hardware tier if set to Auto</div>
+              </div>
+              <div class="select-ctrl">Auto<span style="font-size:10px;color:var(--color-text-tertiary)">▾</span></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Show model selector</div>
+                <div class="setting-desc">Display model choice on every file preview</div>
+              </div>
+              <div class="toggle-wrap on" onclick="toggleThis(this)"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="group-label">Performance</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">CPU threads</div>
+                <div class="setting-desc">Threads allocated to ONNX inference</div>
+              </div>
+              <div class="select-ctrl">4 threads<span style="font-size:10px;color:var(--color-text-tertiary)">▾</span></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Keep model in memory</div>
+                <div class="setting-desc">Faster consecutive transcriptions, uses more RAM</div>
+              </div>
+              <div class="toggle-wrap off" onclick="toggleThis(this)"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export -->
+        <div id="sec-export" style="display:none">
+          <div class="section-title">Export</div>
+          <div class="section-sub">Where and how transcripts are saved</div>
+
+          <div class="setting-group">
+            <div class="group-label">Location</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Export folder</div>
+                <div class="setting-desc">~/Documents/Transcript</div>
+              </div>
+              <div class="btn-sm">Change</div>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="group-label">Format</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Default format</div>
+                <div class="setting-desc">Format pre-selected in the export panel</div>
+              </div>
+              <div class="select-ctrl">TXT<span style="font-size:10px;color:var(--color-text-tertiary)">▾</span></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Include timestamps</div>
+                <div class="setting-desc">Adds [HH:MM:SS] to TXT exports</div>
+              </div>
+              <div class="toggle-wrap on" onclick="toggleThis(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Include speaker labels</div>
+                <div class="setting-desc">Adds "Speaker A:" prefix when diarization is available</div>
+              </div>
+              <div class="toggle-wrap on" onclick="toggleThis(this)"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Privacy -->
+        <div id="sec-privacy" style="display:none">
+          <div class="section-title">Privacy</div>
+          <div class="section-sub">All processing is local. No audio leaves your device.</div>
+
+          <div class="setting-group">
+            <div class="group-label">Telemetry</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Anonymous crash reports</div>
+                <div class="setting-desc">Sends stack traces on crash. No audio or transcript data.</div>
+              </div>
+              <div class="toggle-wrap off" onclick="toggleThis(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Usage analytics</div>
+                <div class="setting-desc">Feature usage counts. No content, no identifiers.</div>
+              </div>
+              <div class="toggle-wrap off" onclick="toggleThis(this)"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="group-label">Updates</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Check for updates</div>
+                <div class="setting-desc">Checks GitHub releases on startup</div>
+              </div>
+              <div class="toggle-wrap on" onclick="toggleThis(this)"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="group-label">Data</div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Clear transcript history</div>
+                <div class="setting-desc">Deletes the recent files index. Models are not affected.</div>
+              </div>
+              <div class="btn-sm btn-danger">Clear</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- About -->
+        <div id="sec-about" style="display:none">
+          <div class="section-title">About</div>
+          <div class="section-sub">Transcript — offline-first audio transcription</div>
+
+          <div class="about-card">
+            <div class="app-icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="2" width="18" height="18" rx="4" stroke="var(--color-text-secondary)" stroke-width="1.3"/><path d="M6 8h10M6 11h7M6 14h5" stroke="var(--color-text-secondary)" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:500">Transcript</div>
+              <div style="font-size:11px;color:var(--color-text-secondary)">Version 0.1.0-alpha</div>
+            </div>
+            <div class="btn-sm">Check for updates</div>
+          </div>
+
+          <div class="setting-group">
+            <div class="group-label">Stack</div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Framework</div></div>
+              <span class="version-tag">Tauri v2 + Leptos 0.7</span>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">ASR runtime</div></div>
+              <span class="version-tag">ort 2.0.0-rc.12</span>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Audio decoder</div></div>
+              <span class="version-tag">Symphonia 0.5</span>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">License</div></div>
+              <span class="version-tag">Apache 2.0</span>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="group-label">Links</div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Source code</div><div class="setting-desc">github.com/h-rica/transcript</div></div>
+              <div class="btn-sm">Open</div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">ONNX artifacts</div><div class="setting-desc">huggingface.co/MiicaLabs/vibevoice-onnx-artifacts</div></div>
+              <div class="btn-sm">Open</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Annotations -->
+<div class="anno-wrap">
+  <div class="anno-title">Leptos components + persistence</div>
+  <div class="anno-grid">
+    <div class="anno-card">
+      <div class="anno-name">SettingsStore</div>
+      <div class="anno-desc">Struct sérialisée en TOML via <code>serde</code>. Persistée dans <code>app_data_dir/settings.toml</code>. Chargée au démarrage, écrite à chaque changement.</div>
+      <div class="anno-code">state/settings_store.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">ToggleRow</div>
+      <div class="anno-desc">Composant générique : label + desc + toggle. Prend un <code>RwSignal&lt;bool&gt;</code> en prop. Met à jour le store au <code>on:click</code>.</div>
+      <div class="anno-code">components/toggle_row.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">SelectRow</div>
+      <div class="anno-desc">Composant générique pour les dropdowns. Prend un <code>RwSignal&lt;T&gt;</code> et une liste d'options. Rendu via <code>&lt;select&gt;</code> natif Leptos.</div>
+      <div class="anno-code">components/select_row.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">Section nav (left panel)</div>
+      <div class="anno-desc">Signal local <code>active_section: RwSignal&lt;Section&gt;</code>. Chaque section affichée via <code>&lt;Show when=...&gt;</code>. Pas de routing — même page.</div>
+      <div class="anno-code">pages/settings.rs</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+function showSection(s) {
+  ['transcription','export','privacy','about'].forEach(id => {
+    document.getElementById('sec-' + id).style.display = 'none';
+    document.getElementById('snav-' + id).classList.remove('active');
+  });
+  document.getElementById('sec-' + s).style.display = 'block';
+  document.getElementById('snav-' + s).classList.add('active');
+}
+
+function toggleThis(el) {
+  el.classList.toggle('on');
+  el.classList.toggle('off');
+}
+</script>

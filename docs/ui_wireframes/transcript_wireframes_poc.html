@@ -1,0 +1,344 @@
+
+<style>
+:root { --w: 360px; }
+.wf-wrap { display:flex; gap:24px; align-items:flex-start; padding:16px 0; }
+.wf-nav { display:flex; flex-direction:column; gap:4px; min-width:148px; }
+.wf-btn { padding:8px 12px; border-radius:6px; border:none; background:transparent; color:var(--color-text-secondary); font-size:13px; cursor:pointer; text-align:left; transition:background .15s, color .15s; }
+.wf-btn:hover { background:var(--color-background-secondary); color:var(--color-text-primary); }
+.wf-btn.active { background:var(--color-background-secondary); color:var(--color-text-primary); font-weight:500; }
+.wf-btn .dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:8px; vertical-align:middle; }
+.screen { display:none; width:var(--w); border:1px solid var(--color-border-tertiary); border-radius:12px; overflow:hidden; background:var(--color-background-primary); }
+.screen.active { display:block; }
+.titlebar { height:32px; background:var(--color-background-secondary); display:flex; align-items:center; padding:0 12px; gap:6px; border-bottom:1px solid var(--color-border-tertiary); }
+.tb-dot { width:10px; height:10px; border-radius:50%; }
+.tb-title { font-size:11px; color:var(--color-text-tertiary); margin-left:auto; margin-right:auto; }
+.screen-body { padding:20px; }
+
+/* shared atoms */
+.label { font-size:11px; color:var(--color-text-secondary); margin-bottom:4px; }
+.input-mock { height:32px; border-radius:6px; border:1px solid var(--color-border-secondary); background:var(--color-background-secondary); display:flex; align-items:center; padding:0 10px; font-size:13px; color:var(--color-text-secondary); margin-bottom:12px; }
+.select-mock { height:32px; border-radius:6px; border:1px solid var(--color-border-secondary); background:var(--color-background-secondary); display:flex; align-items:center; justify-content:space-between; padding:0 10px; font-size:13px; color:var(--color-text-primary); margin-bottom:12px; }
+.btn-primary { height:36px; border-radius:8px; background:var(--color-text-primary); color:var(--color-background-primary); font-size:13px; font-weight:500; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.btn-secondary { height:36px; border-radius:8px; border:1px solid var(--color-border-secondary); font-size:13px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--color-text-primary); }
+.divider { height:1px; background:var(--color-border-tertiary); margin:16px 0; }
+.tag { display:inline-flex; align-items:center; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:500; }
+.progress-bar { height:6px; border-radius:3px; background:var(--color-border-tertiary); overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; background:var(--color-text-primary); }
+
+/* screen 1 — home */
+.drop-zone { border:1.5px dashed var(--color-border-secondary); border-radius:12px; height:140px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; margin-bottom:20px; }
+.drop-icon { width:36px; height:36px; border-radius:8px; background:var(--color-background-secondary); display:flex; align-items:center; justify-content:center; }
+.recent-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--color-border-tertiary); }
+.recent-thumb { width:36px; height:36px; border-radius:6px; background:var(--color-background-secondary); flex-shrink:0; }
+.recent-meta { font-size:11px; color:var(--color-text-secondary); margin-top:2px; }
+
+/* screen 3 — transcription */
+.seg { display:flex; gap:10px; margin-bottom:12px; }
+.seg-avatar { width:28px; height:28px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:500; margin-top:2px; }
+.seg-bubble { background:var(--color-background-secondary); border-radius:8px; padding:8px 10px; font-size:12px; line-height:1.5; flex:1; }
+.seg-time { font-size:10px; color:var(--color-text-tertiary); margin-top:4px; }
+
+/* screen 4 — transcript view */
+.tabs { display:flex; gap:0; border-bottom:1px solid var(--color-border-tertiary); margin-bottom:16px; }
+.tab { padding:8px 14px; font-size:12px; color:var(--color-text-secondary); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
+.tab.active { color:var(--color-text-primary); border-bottom:2px solid var(--color-text-primary); font-weight:500; }
+
+/* screen 5 — model manager */
+.model-row { padding:12px 0; border-bottom:1px solid var(--color-border-tertiary); }
+.model-row:last-child { border-bottom:none; }
+.model-row-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+.badge { padding:2px 6px; border-radius:4px; font-size:10px; font-weight:500; }
+.badge-green { background:var(--color-background-success); color:var(--color-text-success); }
+.badge-gray { background:var(--color-background-secondary); color:var(--color-text-secondary); }
+.badge-blue { background:var(--color-background-info); color:var(--color-text-info); }
+.storage-bar { height:4px; border-radius:2px; background:var(--color-border-tertiary); margin:10px 0 4px; overflow:hidden; }
+.storage-fill { height:100%; border-radius:2px; background:var(--color-text-secondary); }
+
+/* screen 6 — settings */
+.setting-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--color-border-tertiary); }
+.setting-row:last-child { border-bottom:none; }
+.toggle { width:32px; height:18px; border-radius:9px; background:var(--color-text-secondary); opacity:0.5; border-radius:9px; }
+.toggle.on { background:var(--color-text-primary); opacity:1; }
+</style>
+
+<div class="wf-wrap">
+  <nav class="wf-nav">
+    <div style="font-size:11px;color:var(--color-text-tertiary);padding:4px 12px 8px;font-weight:500;text-transform:uppercase;letter-spacing:.04em">Screens</div>
+    <button class="wf-btn active" onclick="show(0)"><span class="dot" style="background:#9f9"></span>Home</button>
+    <button class="wf-btn" onclick="show(1)"><span class="dot" style="background:#9cf"></span>File Preview</button>
+    <button class="wf-btn" onclick="show(2)"><span class="dot" style="background:#fc9"></span>Transcription</button>
+    <button class="wf-btn" onclick="show(3)"><span class="dot" style="background:#c9f"></span>Transcript View</button>
+    <button class="wf-btn" onclick="show(4)"><span class="dot" style="background:#f9c"></span>Model Manager</button>
+    <button class="wf-btn" onclick="show(5)"><span class="dot" style="background:#9cc"></span>Settings</button>
+    <div class="divider" style="margin:8px 0"></div>
+    <div style="font-size:11px;color:var(--color-text-tertiary);padding:4px 12px">Leptos route</div>
+    <div id="route-label" style="font-size:11px;padding:4px 12px;color:var(--color-text-secondary);font-family:var(--font-mono)">/</div>
+  </nav>
+
+  <!-- Screen 1: Home -->
+  <div class="screen active" id="s0">
+    <div class="titlebar">
+      <div class="tb-dot" style="background:#f96"></div>
+      <div class="tb-dot" style="background:#fc3"></div>
+      <div class="tb-dot" style="background:#6c6"></div>
+      <div class="tb-title">Transcript</div>
+    </div>
+    <div class="screen-body">
+      <div style="font-size:15px;font-weight:500;margin-bottom:16px">Transcribe</div>
+      <div class="drop-zone">
+        <div class="drop-icon">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3" y="2" width="12" height="14" rx="2" stroke="var(--color-text-secondary)" stroke-width="1.2"/><path d="M6 7h6M6 10h4" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+        <div style="font-size:13px;color:var(--color-text-primary);font-weight:500">Drop audio file here</div>
+        <div style="font-size:11px;color:var(--color-text-tertiary)">MP3 · WAV · M4A</div>
+        <div class="btn-secondary" style="width:120px;height:28px;font-size:12px;margin-top:4px">Browse files</div>
+      </div>
+      <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Recent</div>
+      <div class="recent-item">
+        <div class="recent-thumb"></div>
+        <div style="flex:1">
+          <div style="font-size:13px">interview_2026_03.mp3</div>
+          <div class="recent-meta">24:38 · FR · VibeVoice INT8 · 3h ago</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="var(--color-text-tertiary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="recent-item">
+        <div class="recent-thumb"></div>
+        <div style="flex:1">
+          <div style="font-size:13px">meeting_recording.wav</div>
+          <div class="recent-meta">01:02:14 · EN · Whisper Large · Yesterday</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="var(--color-text-tertiary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="recent-item" style="border-bottom:none">
+        <div class="recent-thumb"></div>
+        <div style="flex:1">
+          <div style="font-size:13px">podcast_ep42.m4a</div>
+          <div class="recent-meta">48:22 · FR · VibeVoice INT8 · 2 days ago</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="var(--color-text-tertiary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: File Preview -->
+  <div class="screen" id="s1">
+    <div class="titlebar">
+      <div class="tb-dot" style="background:#f96"></div>
+      <div class="tb-dot" style="background:#fc3"></div>
+      <div class="tb-dot" style="background:#6c6"></div>
+      <div class="tb-title">Transcript — File Preview</div>
+    </div>
+    <div class="screen-body">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 1L13 5v8H1V1h8z" stroke="var(--color-text-secondary)" stroke-width="1.1"/></svg>
+        <div style="font-size:14px;font-weight:500">interview_2026_03.mp3</div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:16px;padding:12px;background:var(--color-background-secondary);border-radius:8px">
+        <div style="text-align:center;flex:1"><div style="font-size:18px;font-weight:500">24:38</div><div style="font-size:10px;color:var(--color-text-tertiary)">Duration</div></div>
+        <div style="text-align:center;flex:1"><div style="font-size:18px;font-weight:500">48 MB</div><div style="font-size:10px;color:var(--color-text-tertiary)">Size</div></div>
+        <div style="text-align:center;flex:1"><div style="font-size:18px;font-weight:500">MP3</div><div style="font-size:10px;color:var(--color-text-tertiary)">Format</div></div>
+      </div>
+      <div class="label">Language</div>
+      <div class="select-mock">French (FR)<span style="font-size:10px">▾</span></div>
+      <div class="label">Model</div>
+      <div class="select-mock" style="margin-bottom:4px">VibeVoice INT8 — 8.5 GB<span style="font-size:10px">▾</span></div>
+      <div style="display:flex;gap:6px;margin-bottom:16px">
+        <span class="tag" style="background:var(--color-background-success);color:var(--color-text-success)">● Diarization</span>
+        <span class="tag" style="background:var(--color-background-secondary);color:var(--color-text-secondary)">Recommended</span>
+      </div>
+      <div style="padding:10px;border-radius:8px;border:1px solid var(--color-border-tertiary);font-size:12px;color:var(--color-text-secondary);margin-bottom:16px">
+        ⏱ Estimated time: ~19 min at 1.3× RTFx on CPU
+      </div>
+      <div class="btn-primary">Start Transcription</div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Transcription -->
+  <div class="screen" id="s2">
+    <div class="titlebar">
+      <div class="tb-dot" style="background:#f96"></div>
+      <div class="tb-dot" style="background:#fc3"></div>
+      <div class="tb-dot" style="background:#6c6"></div>
+      <div class="tb-title">Transcript — In Progress</div>
+    </div>
+    <div class="screen-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:13px;font-weight:500">Transcribing…</div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">64%</div>
+      </div>
+      <div class="progress-bar" style="margin-bottom:4px"><div class="progress-fill" style="width:64%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-tertiary);margin-bottom:16px">
+        <span>Elapsed 00:15:44</span>
+        <span>Speed 1.3× · ETA 08:52</span>
+      </div>
+      <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:10px">Live segments</div>
+      <div class="seg">
+        <div class="seg-avatar" style="background:#dbeafe;color:#1d4ed8">A</div>
+        <div>
+          <div class="seg-bubble">Bonjour et bienvenue dans cette émission. Aujourd'hui nous allons parler d'intelligence artificielle.</div>
+          <div class="seg-time">00:00:04 → 00:00:18</div>
+        </div>
+      </div>
+      <div class="seg">
+        <div class="seg-avatar" style="background:#fce7f3;color:#9d174d">B</div>
+        <div>
+          <div class="seg-bubble">Merci de nous rejoindre. C'est un sujet qui évolue très rapidement.</div>
+          <div class="seg-time">00:00:19 → 00:00:28</div>
+        </div>
+      </div>
+      <div class="seg">
+        <div class="seg-avatar" style="background:#dbeafe;color:#1d4ed8">A</div>
+        <div>
+          <div class="seg-bubble" style="opacity:0.5">En effet, et aujourd'hui…<span style="display:inline-block;width:8px;height:11px;background:var(--color-text-primary);border-radius:1px;margin-left:2px;animation:none;vertical-align:middle;opacity:0.7"></span></div>
+          <div class="seg-time" style="opacity:0.4">00:15:41 → …</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="btn-secondary" style="color:var(--color-text-secondary)">Cancel</div>
+    </div>
+  </div>
+
+  <!-- Screen 4: Transcript View -->
+  <div class="screen" id="s3">
+    <div class="titlebar">
+      <div class="tb-dot" style="background:#f96"></div>
+      <div class="tb-dot" style="background:#fc3"></div>
+      <div class="tb-dot" style="background:#6c6"></div>
+      <div class="tb-title">Transcript — View</div>
+    </div>
+    <div class="screen-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:14px;font-weight:500">interview_2026_03</div>
+        <div style="display:flex;gap:8px">
+          <div class="btn-secondary" style="width:80px;height:30px;font-size:12px">Copy all</div>
+          <div class="btn-primary" style="width:80px;height:30px;font-size:12px">Export ▾</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active">Speakers</div>
+        <div class="tab">Timeline</div>
+        <div class="tab">Raw</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px"><div style="width:10px;height:10px;border-radius:50%;background:#3b82f6"></div>Speaker A</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px"><div style="width:10px;height:10px;border-radius:50%;background:#ec4899"></div>Speaker B</div>
+      </div>
+      <div class="seg">
+        <div class="seg-avatar" style="background:#dbeafe;color:#1d4ed8">A</div>
+        <div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:3px">00:00:04 → 00:00:18</div>
+          <div style="font-size:13px;line-height:1.6">Bonjour et bienvenue dans cette émission. Aujourd'hui nous allons parler d'intelligence artificielle.</div>
+        </div>
+      </div>
+      <div class="seg">
+        <div class="seg-avatar" style="background:#fce7f3;color:#9d174d">B</div>
+        <div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:3px">00:00:19 → 00:00:28</div>
+          <div style="font-size:13px;line-height:1.6">Merci de nous rejoindre. C'est un sujet qui évolue très rapidement.</div>
+        </div>
+      </div>
+      <div class="seg">
+        <div class="seg-avatar" style="background:#dbeafe;color:#1d4ed8">A</div>
+        <div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);margin-bottom:3px">00:00:29 → 00:00:45</div>
+          <div style="font-size:13px;line-height:1.6">En effet, et aujourd'hui nous avons un expert pour nous en parler.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 5: Model Manager -->
+  <div class="screen" id="s4">
+    <div class="titlebar">
+      <div class="tb-dot" style="background:#f96"></div>
+      <div class="tb-dot" style="background:#fc3"></div>
+      <div class="tb-dot" style="background:#6c6"></div>
+      <div class="tb-title">Transcript — Models</div>
+    </div>
+    <div class="screen-body">
+      <div style="font-size:15px;font-weight:500;margin-bottom:4px">Models</div>
+      <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:12px">Your hardware: 32 GB RAM · No GPU</div>
+      <div class="storage-bar"><div class="storage-fill" style="width:32%"></div></div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:16px">11.2 GB / 35 GB available</div>
+
+      <div class="model-row">
+        <div class="model-row-top">
+          <div style="font-size:13px;font-weight:500">Whisper Tiny</div>
+          <span class="badge badge-green">Active</span>
+        </div>
+        <div style="font-size:11px;color:var(--color-text-secondary)">150 MB · Bundled · FR + EN</div>
+      </div>
+      <div class="model-row">
+        <div class="model-row-top">
+          <div style="font-size:13px;font-weight:500">VibeVoice INT8</div>
+          <span class="badge badge-blue">Recommended</span>
+        </div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:8px">8.5 GB · Diarization ✓ · FR + EN</div>
+        <div class="progress-bar" style="margin-bottom:4px"><div class="progress-fill" style="width:0%"></div></div>
+        <div class="btn-primary" style="height:30px;font-size:12px;margin-top:8px">Download — 8.5 GB</div>
+      </div>
+      <div class="model-row">
+        <div class="model-row-top">
+          <div style="font-size:13px;font-weight:500">Whisper Large v3</div>
+          <span class="badge badge-gray">Available</span>
+        </div>
+        <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:8px">3.1 GB · No diarization · Multilingual</div>
+        <div class="btn-secondary" style="height:30px;font-size:12px">Download — 3.1 GB</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 6: Settings -->
+  <div class="screen" id="s5">
+    <div class="titlebar">
+      <div class="tb-dot" style="background:#f96"></div>
+      <div class="tb-dot" style="background:#fc3"></div>
+      <div class="tb-dot" style="background:#6c6"></div>
+      <div class="tb-title">Transcript — Settings</div>
+    </div>
+    <div class="screen-body">
+      <div style="font-size:15px;font-weight:500;margin-bottom:16px">Settings</div>
+
+      <div style="font-size:11px;font-weight:500;color:var(--color-text-tertiary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Transcription</div>
+      <div class="setting-row">
+        <div><div style="font-size:13px">Default language</div><div style="font-size:11px;color:var(--color-text-tertiary)">Used when not set per file</div></div>
+        <div class="select-mock" style="width:80px;margin-bottom:0;font-size:12px">FR<span style="font-size:10px">▾</span></div>
+      </div>
+      <div class="setting-row">
+        <div><div style="font-size:13px">Default model</div><div style="font-size:11px;color:var(--color-text-tertiary)">Suggested based on hardware</div></div>
+        <div class="select-mock" style="width:80px;margin-bottom:0;font-size:12px">Auto<span style="font-size:10px">▾</span></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:500;color:var(--color-text-tertiary);margin:16px 0 8px;text-transform:uppercase;letter-spacing:.04em">Export</div>
+      <div class="setting-row">
+        <div><div style="font-size:13px">Export location</div><div style="font-size:11px;color:var(--color-text-tertiary)">~/Documents/Transcript</div></div>
+        <div class="btn-secondary" style="width:60px;height:28px;font-size:11px">Change</div>
+      </div>
+      <div class="setting-row">
+        <div><div style="font-size:13px">Default format</div></div>
+        <div class="select-mock" style="width:80px;margin-bottom:0;font-size:12px">TXT<span style="font-size:10px">▾</span></div>
+      </div>
+
+      <div style="font-size:11px;font-weight:500;color:var(--color-text-tertiary);margin:16px 0 8px;text-transform:uppercase;letter-spacing:.04em">Privacy</div>
+      <div class="setting-row">
+        <div><div style="font-size:13px">Telemetry</div><div style="font-size:11px;color:var(--color-text-tertiary)">Anonymous crash reports</div></div>
+        <div class="toggle"></div>
+      </div>
+      <div class="setting-row" style="border-bottom:none">
+        <div><div style="font-size:13px">Check for updates</div></div>
+        <div class="toggle on"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const routes = ['/', '/preview', '/transcription', '/transcript/:id', '/models', '/settings'];
+const labels = document.querySelectorAll('.wf-btn');
+function show(i) {
+  document.querySelectorAll('.screen').forEach((s,j) => s.classList.toggle('active', j===i));
+  labels.forEach((b,j) => b.classList.toggle('active', j===i));
+  document.getElementById('route-label').textContent = routes[i];
+}
+</script>
