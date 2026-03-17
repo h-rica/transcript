@@ -1,6 +1,7 @@
 use leptos::prelude::*;
-use leptos_use::use_drop_zone;
+use leptos_use::{UseDropZoneReturn, use_drop_zone};
 
+use crate::components::sidebar::Sidebar;
 use crate::state::app_state::use_app_state;
 
 #[component]
@@ -14,7 +15,7 @@ pub fn HomePage() -> impl IntoView {
 
     // When a file is dropped — navigate to preview
     Effect::new(move |_| {
-        let dropped = files.get();
+        let dropped = files.read();
         if let Some(file) = dropped.first() {
             let name = file.name();
             state.selected_file.set(Some(name));
