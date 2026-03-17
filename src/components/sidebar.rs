@@ -1,50 +1,62 @@
 use leptos::prelude::*;
-use leptos_darkmode::Darkmode;
 use leptos_router::hooks::use_location;
+use singlestage::{Badge, Mode, ThemeProviderContext};
+
+use crate::{
+    components::app_ui::ActionButton,
+    state::app_state::{ThemePreference, use_app_shell_state},
+};
 
 #[component]
 pub fn Sidebar() -> impl IntoView {
     let location = use_location();
-    let mut darkmode = expect_context::<Darkmode>();
-    let darkmode_label = darkmode.clone();
+    let shell = use_app_shell_state();
+    let theme = expect_context::<ThemeProviderContext>();
+
+    Effect::new(move |_| {
+        theme.mode.set(match shell.theme_preference.get() {
+            ThemePreference::Auto => Mode::Auto,
+            ThemePreference::Dark => Mode::Dark,
+            ThemePreference::Light => Mode::Light,
+        });
+    });
 
     let nav_item = move |href: &'static str, label: &'static str, icon: &'static str| {
         view! {
             <a
-                href=href
                 class=move || {
                     let path = location.pathname.get();
-                    let is_active = href == "/" && path == "/"
-                        || href != "/" && path.starts_with(href);
-                    format!(
-                        "group flex w-full items-center gap-3 rounded-2xl px-3 py-2 text-sm transition {}",
-                        if is_active {
-                            "bg-slate-900 text-white shadow-sm dark:bg-slate-100 dark:text-slate-950"
-                        } else {
-                            "text-slate-500 hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
-                        }
-                    )
+                    let is_active = (href == "/" && path == "/") || (href != "/" && path.starts_with(href));
+                    let variant = if is_active {
+                        "singlestage-btn-primary"
+                    } else {
+                        "singlestage-btn-ghost"
+                    };
+                    format!("{} w-full justify-start", variant)
                 }
-                title=label
+                href=href
             >
-                <span class="text-lg leading-none">{icon}</span>
+                <span class="text-sm font-semibold">{icon}</span>
                 <span>{label}</span>
             </a>
         }
     };
 
     view! {
-        <aside class="flex w-60 flex-col border-r border-slate-200 bg-slate-100/80 px-3 py-4 dark:border-slate-800 dark:bg-slate-900/80">
-            <div class="mb-6 px-2">
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
-                    "Transcript"
-                </p>
-                <p class="mt-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
-                    "Local speech workspace"
-                </p>
+        <aside class="hidden w-64 flex-col border-r border-slate-200 bg-white/80 px-4 py-5 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80 lg:flex">
+            <div class="space-y-3">
+                <Badge variant="secondary">"Single Stage UI"</Badge>
+                <div>
+                    <p class="text-lg font-semibold text-slate-950 dark:text-slate-50">
+                        "Local speech workspace"
+                    </p>
+                    <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                        "Offline transcription flow with Leptos, Tauri, and local models."
+                    </p>
+                </div>
             </div>
 
-            <nav class="flex flex-col gap-2">
+            <nav class="mt-6 flex flex-col gap-2">
                 {nav_item("/", "Home", "H")}
                 {nav_item("/preview", "Preview", "P")}
                 {nav_item("/transcription", "Live run", "R")}
@@ -52,18 +64,18 @@ pub fn Sidebar() -> impl IntoView {
                 {nav_item("/models", "Models", "M")}
             </nav>
 
-            <div class="mt-auto flex flex-col gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
+            <div class="mt-auto space-y-3 border-t border-slate-200 pt-4 dark:border-slate-800">
                 {nav_item("/settings", "Settings", "S")}
-                <button
-                    class="flex w-full items-center justify-between rounded-2xl px-3 py-2 text-sm text-slate-500 transition hover:bg-white hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
-                    on:click=move |_| darkmode.toggle()
-                    type="button"
+                <ActionButton
+                    class="w-full justify-between"
+                    on_click=Callback::new(move |_| {
+                        shell.theme_preference.update(|mode| *mode = mode.toggle());
+                    })
+                    variant="outline"
                 >
                     <span>"Theme"</span>
-                    <span class="text-xs font-medium uppercase tracking-wide">
-                        {move || if darkmode_label.is_dark() { "Dark" } else { "Light" }}
-                    </span>
-                </button>
+                    <span>{move || shell.theme_preference.get().label()}</span>
+                </ActionButton>
             </div>
         </aside>
     }
