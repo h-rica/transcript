@@ -22,3 +22,4 @@ wasm-bindgen-futures = "0.4.64"
 
 # Error handling
 anyhow = "1.0.102"
+home = "0.5.12"
