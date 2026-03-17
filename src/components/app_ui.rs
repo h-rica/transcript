@@ -1,4 +1,5 @@
 use leptos::{ev::MouseEvent, prelude::*};
+use leptos_router::components::A;
 use singlestage::{Badge, Card, CardContent, CardDescription, CardHeader, CardTitle};
 
 #[component]
@@ -57,8 +58,8 @@ pub fn LinkButton(
     #[prop(optional, into)] class: MaybeProp<String>,
 ) -> impl IntoView {
     view! {
-        <a
-            class=move || {
+        <A
+            attr:class=move || {
                 let variant_class = match variant.get().unwrap_or_else(|| "outline".into()).as_str() {
                     "secondary" => "singlestage-btn-secondary",
                     "ghost" => "singlestage-btn-ghost",
@@ -71,7 +72,7 @@ pub fn LinkButton(
             href=href
         >
             {children()}
-        </a>
+        </A>
     }
 }
 
