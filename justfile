@@ -44,7 +44,15 @@ lint:
     cargo clippy -- -D warnings
     cd src-tauri; cargo clippy -- -D warnings
 
-# Download Whisper Tiny bundled model (run once before cargo tauri build)
+# Download VibeVoice ONNX artifacts from HuggingFace (run once)
+download-onnx:
+    New-Item -ItemType Directory -Path src-tauri/resources/onnx -Force
+    Invoke-WebRequest -Uri "https://huggingface.co/MiicaLabs/vibevoice-onnx-artifacts/resolve/main/onnx/vibevoice_acoustic.onnx" -OutFile "src-tauri/resources/onnx/vibevoice_acoustic.onnx"
+    Invoke-WebRequest -Uri "https://huggingface.co/MiicaLabs/vibevoice-onnx-artifacts/resolve/main/onnx/vibevoice_acoustic.onnx.data" -OutFile "src-tauri/resources/onnx/vibevoice_acoustic.onnx.data"
+    Invoke-WebRequest -Uri "https://huggingface.co/MiicaLabs/vibevoice-onnx-artifacts/resolve/main/onnx/vibevoice_semantic.onnx" -OutFile "src-tauri/resources/onnx/vibevoice_semantic.onnx"
+    Invoke-WebRequest -Uri "https://huggingface.co/MiicaLabs/vibevoice-onnx-artifacts/resolve/main/onnx/vibevoice_semantic.onnx.data" -OutFile "src-tauri/resources/onnx/vibevoice_semantic.onnx.data"
+    Write-Host "done: src-tauri/resources/onnx/"
+
 download-whisper-tiny:
     New-Item -ItemType Directory -Path src-tauri/resources -Force
     Invoke-WebRequest -Uri "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin" -OutFile "src-tauri/resources/ggml-tiny.bin"
