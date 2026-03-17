@@ -42,7 +42,11 @@ fn schedule_dev_cleanup() {
         .join("dev-helper")
         .join("target")
         .join("debug")
-        .join(if cfg!(windows) { "dev-helper.exe" } else { "dev-helper" });
+        .join(if cfg!(windows) {
+            "dev-helper.exe"
+        } else {
+            "dev-helper"
+        });
 
     if !helper_binary.exists() {
         return;
@@ -63,8 +67,11 @@ fn schedule_dev_cleanup() {}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(commands::transcribe::TranscriptionControl::default())
         .on_window_event(|window, event| {
-            if window.label() == "main" && matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
+            if window.label() == "main"
+                && matches!(event, tauri::WindowEvent::CloseRequested { .. })
+            {
                 schedule_dev_cleanup();
             }
         })

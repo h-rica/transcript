@@ -34,7 +34,11 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "resources/ggml-tiny.bin": "models/ggml-tiny.bin"
+      "resources/ggml-tiny.bin": "models/ggml-tiny.bin",
+      "resources/onnx/vibevoice_acoustic.onnx": "models/onnx/vibevoice_acoustic.onnx",
+      "resources/onnx/vibevoice_acoustic.onnx.data": "models/onnx/vibevoice_acoustic.onnx.data",
+      "resources/onnx/vibevoice_semantic.onnx": "models/onnx/vibevoice_semantic.onnx",
+      "resources/onnx/vibevoice_semantic.onnx.data": "models/onnx/vibevoice_semantic.onnx.data"
     }
   }
 }

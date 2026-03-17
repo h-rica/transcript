@@ -5,12 +5,8 @@ use leptos_router::{
 };
 
 use crate::pages::{
-    file_preview::FilePreviewPage,
-    home::HomePage,
-    model_manager::ModelManagerPage,
-    settings::SettingsPage,
-    transcript_view::TranscriptViewPage,
-    transcription::TranscriptionPage,
+    file_preview::FilePreviewPage, home::HomePage, model_manager::ModelManagerPage,
+    settings::SettingsPage, transcript_view::TranscriptViewPage, transcription::TranscriptionPage,
 };
 use crate::state::app_state::provide_app_state;
 

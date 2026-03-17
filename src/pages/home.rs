@@ -11,7 +11,11 @@ pub fn HomePage() -> impl IntoView {
 
     // Drop zone
     let drop_ref = NodeRef::new();
-    let UseDropZoneReturn { is_over_drop_zone, files, .. } = use_drop_zone(drop_ref);
+    let UseDropZoneReturn {
+        is_over_drop_zone,
+        files,
+        ..
+    } = use_drop_zone(drop_ref);
 
     // When a file is dropped — navigate to preview
     Effect::new(move |_| {

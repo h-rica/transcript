@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use symphonia::core::audio::SampleBuffer;
 use symphonia::core::codecs::DecoderOptions;
 use symphonia::core::errors::Error as SymphoniaError;
@@ -10,6 +10,7 @@ use symphonia::default::{get_codecs, get_probe};
 
 pub const TARGET_SAMPLE_RATE: u32 = 24_000;
 
+#[allow(dead_code)]
 pub struct DecodedAudio {
     pub samples: Vec<f32>,
     pub sample_rate: u32,
@@ -80,11 +81,12 @@ pub fn decode_audio_file(path: &str) -> Result<DecodedAudio> {
         }
     }
 
-    let duration_s = all_samples.len() as f32 / sample_rate as f32;
+    let resampled_samples = resample_mono(&all_samples, sample_rate, TARGET_SAMPLE_RATE);
+    let duration_s = resampled_samples.len() as f32 / TARGET_SAMPLE_RATE as f32;
 
     Ok(DecodedAudio {
-        samples: all_samples,
-        sample_rate,
+        samples: resampled_samples,
+        sample_rate: TARGET_SAMPLE_RATE,
         duration_s,
         channels: 1,
     })
@@ -123,6 +125,26 @@ pub fn get_audio_metadata(path: &str) -> Result<(f32, u64, String)> {
     Ok((duration_s, size, format_name))
 }
 
+pub fn resample_mono(samples: &[f32], from_hz: u32, to_hz: u32) -> Vec<f32> {
+    if samples.is_empty() || from_hz == 0 || to_hz == 0 || from_hz == to_hz {
+        return samples.to_vec();
+    }
+
+    let ratio = from_hz as f64 / to_hz as f64;
+    let out_len = ((samples.len() as f64 / ratio).round() as usize).max(1);
+    let mut out = Vec::with_capacity(out_len);
+
+    for i in 0..out_len {
+        let src = i as f64 * ratio;
+        let lo = src.floor() as usize;
+        let hi = lo.saturating_add(1).min(samples.len() - 1);
+        let frac = (src - lo as f64) as f32;
+        out.push(samples[lo] * (1.0 - frac) + samples[hi] * frac);
+    }
+
+    out
+}
+
 fn build_hint(path: &str) -> Hint {
     let mut hint = Hint::new();
 
@@ -134,4 +156,92 @@ fn build_hint(path: &str) -> Hint {
     }
 
     hint
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{TARGET_SAMPLE_RATE, decode_audio_file};
+    use anyhow::Result;
+    use std::{
+        f32::consts::PI,
+        fs,
+        path::PathBuf,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    #[test]
+    fn decode_audio_file_should_resample_stereo_wav_to_target_rate() -> Result<()> {
+        let path = write_test_wav(48_000, 2, 1.0)?;
+        let decoded = decode_audio_file(path.to_string_lossy().as_ref())?;
+        fs::remove_file(&path).ok();
+
+        assert_eq!(decoded.sample_rate, TARGET_SAMPLE_RATE);
+        assert_eq!(decoded.channels, 1);
+        assert!((decoded.duration_s - 1.0).abs() < 0.02);
+        assert!((decoded.samples.len() as i64 - TARGET_SAMPLE_RATE as i64).abs() <= 8);
+
+        Ok(())
+    }
+
+    #[test]
+    fn decode_audio_file_should_keep_target_rate_for_mono_wav() -> Result<()> {
+        let path = write_test_wav(TARGET_SAMPLE_RATE, 1, 0.25)?;
+        let decoded = decode_audio_file(path.to_string_lossy().as_ref())?;
+        fs::remove_file(&path).ok();
+
+        assert_eq!(decoded.sample_rate, TARGET_SAMPLE_RATE);
+        assert_eq!(decoded.channels, 1);
+        assert!((decoded.duration_s - 0.25).abs() < 0.02);
+        assert!((decoded.samples.len() as i64 - 6_000).abs() <= 4);
+
+        Ok(())
+    }
+
+    fn write_test_wav(sample_rate: u32, channels: u16, duration_s: f32) -> Result<PathBuf> {
+        let frames = (sample_rate as f32 * duration_s) as usize;
+        let wav = build_pcm_wav(sample_rate, channels, frames);
+        let path = std::env::temp_dir().join(format!(
+            "transcript-audio-test-{}-{}.wav",
+            std::process::id(),
+            SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos()
+        ));
+
+        fs::write(&path, wav)?;
+        Ok(path)
+    }
+
+    fn build_pcm_wav(sample_rate: u32, channels: u16, frames: usize) -> Vec<u8> {
+        let bits_per_sample = 16u16;
+        let bytes_per_sample = (bits_per_sample / 8) as usize;
+        let block_align = channels as usize * bytes_per_sample;
+        let data_size = frames * block_align;
+        let chunk_size = 36 + data_size as u32;
+        let byte_rate = sample_rate * block_align as u32;
+        let mut wav = Vec::with_capacity(44 + data_size);
+
+        wav.extend_from_slice(b"RIFF");
+        wav.extend_from_slice(&chunk_size.to_le_bytes());
+        wav.extend_from_slice(b"WAVE");
+        wav.extend_from_slice(b"fmt ");
+        wav.extend_from_slice(&16u32.to_le_bytes());
+        wav.extend_from_slice(&1u16.to_le_bytes());
+        wav.extend_from_slice(&channels.to_le_bytes());
+        wav.extend_from_slice(&sample_rate.to_le_bytes());
+        wav.extend_from_slice(&byte_rate.to_le_bytes());
+        wav.extend_from_slice(&(block_align as u16).to_le_bytes());
+        wav.extend_from_slice(&bits_per_sample.to_le_bytes());
+        wav.extend_from_slice(b"data");
+        wav.extend_from_slice(&(data_size as u32).to_le_bytes());
+
+        for frame in 0..frames {
+            let phase = 2.0 * PI * 440.0 * frame as f32 / sample_rate as f32;
+            let sample = (phase.sin() * i16::MAX as f32 * 0.25) as i16;
+
+            for _ in 0..channels {
+                wav.extend_from_slice(&sample.to_le_bytes());
+            }
+        }
+
+        wav
+    }
 }

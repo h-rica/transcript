@@ -1,5 +1,6 @@
 use leptos::prelude::*;
 
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct HardwareInfo {
     pub ram_gb: u32,
@@ -7,6 +8,7 @@ pub struct HardwareInfo {
     pub tier: String,
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct AppState {
     pub selected_file: RwSignal<Option<String>>,

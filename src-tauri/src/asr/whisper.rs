@@ -1,8 +1,11 @@
 use anyhow::{Context, Result};
-use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters};
+use whisper_rs::{
+    FullParams, SamplingStrategy, SegmentCallbackData, WhisperContext, WhisperContextParameters,
+};
 
-use crate::audio::decoder::decode_audio_file;
+use crate::audio::decoder::{decode_audio_file, resample_mono};
 
+#[derive(Clone, Debug)]
 pub struct WhisperSegment {
     pub speaker: String,
     pub text: String,
@@ -23,32 +26,72 @@ impl WhisperModel {
         Ok(Self { ctx })
     }
 
-    pub fn transcribe(&self, audio_path: &str, language: &str) -> Result<Vec<WhisperSegment>> {
+    pub fn transcribe_with_callbacks<FP, FS, FA>(
+        &self,
+        audio_path: &str,
+        language: &str,
+        mut on_progress: FP,
+        mut on_segment: FS,
+        should_abort: FA,
+    ) -> Result<Vec<WhisperSegment>>
+    where
+        FP: FnMut(i32) + 'static,
+        FS: FnMut(WhisperSegment) + 'static,
+        FA: FnMut() -> bool + 'static,
+    {
         let audio = decode_audio_file(audio_path)?;
-
-        let samples = if audio.sample_rate != 16_000 {
-            resample(&audio.samples, audio.sample_rate, 16_000)
-        } else {
-            audio.samples
-        };
+        let samples = resample_mono(&audio.samples, audio.sample_rate, 16_000);
 
         let mut state = self
             .ctx
             .create_state()
             .context("Failed to create Whisper state")?;
 
+        let normalized_language =
+            if language.trim().is_empty() || language.eq_ignore_ascii_case("auto") {
+                None
+            } else {
+                Some(language)
+            };
+        let output_language = normalized_language.unwrap_or("auto").to_string();
+
+        let progress_callback: Box<dyn FnMut(i32)> = Box::new(move |progress: i32| {
+            on_progress(progress);
+        });
+        let segment_callback: Box<dyn FnMut(SegmentCallbackData)> =
+            Box::new(move |segment: SegmentCallbackData| {
+                on_segment(WhisperSegment {
+                    speaker: "Speaker A".to_string(),
+                    text: segment.text.trim().to_string(),
+                    start_s: segment.start_timestamp as f32 / 100.0,
+                    end_s: segment.end_timestamp as f32 / 100.0,
+                    language: output_language.clone(),
+                });
+            });
+        let abort_callback: Box<dyn FnMut() -> bool> = Box::new(should_abort);
+
         let mut params = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
-        params.set_language(Some(language));
+        params.set_language(normalized_language);
         params.set_print_progress(false);
         params.set_print_realtime(false);
         params.set_print_timestamps(false);
         params.set_n_threads(4);
+        params.set_progress_callback_safe::<Option<Box<dyn FnMut(i32)>>, Box<dyn FnMut(i32)>>(
+            Some(progress_callback),
+        );
+        params.set_segment_callback_safe_lossy::<
+            Option<Box<dyn FnMut(SegmentCallbackData)>>,
+            Box<dyn FnMut(SegmentCallbackData)>,
+        >(Some(segment_callback));
+        params
+            .set_abort_callback_safe::<Option<Box<dyn FnMut() -> bool>>, Box<dyn FnMut() -> bool>>(
+                Some(abort_callback),
+            );
 
         state
             .full(params, &samples)
             .context("Whisper inference failed")?;
 
-        // as_iter() is the idiomatic API in whisper-rs 0.16
         let segments = state
             .as_iter()
             .map(|seg| WhisperSegment {
@@ -56,29 +99,10 @@ impl WhisperModel {
                 text: seg.to_string().trim().to_string(),
                 start_s: seg.start_timestamp() as f32 / 100.0,
                 end_s: seg.end_timestamp() as f32 / 100.0,
-                language: language.to_string(),
+                language: normalized_language.unwrap_or("auto").to_string(),
             })
             .collect();
 
         Ok(segments)
     }
-}
-
-fn resample(samples: &[f32], from_hz: u32, to_hz: u32) -> Vec<f32> {
-    if from_hz == to_hz {
-        return samples.to_vec();
-    }
-    let ratio = from_hz as f64 / to_hz as f64;
-    let out_len = (samples.len() as f64 / ratio) as usize;
-    let mut out = Vec::with_capacity(out_len);
-
-    for i in 0..out_len {
-        let src = i as f64 * ratio;
-        let lo = src.floor() as usize;
-        let hi = (lo + 1).min(samples.len() - 1);
-        let frac = (src - lo as f64) as f32;
-        out.push(samples[lo] * (1.0 - frac) + samples[hi] * frac);
-    }
-
-    out
 }
