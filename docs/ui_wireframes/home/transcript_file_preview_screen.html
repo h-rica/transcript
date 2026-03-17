@@ -1,0 +1,289 @@
+
+<style>
+.state-nav { display:flex; gap:8px; padding:0 0 16px; flex-wrap:wrap; }
+.state-btn { padding:6px 14px; border-radius:20px; border:1px solid var(--color-border-secondary); font-size:12px; cursor:pointer; color:var(--color-text-secondary); background:transparent; transition:all .15s; }
+.state-btn.active { background:var(--color-text-primary); color:var(--color-background-primary); border-color:var(--color-text-primary); }
+
+.mockup { border:1px solid var(--color-border-tertiary); border-radius:12px; overflow:hidden; background:var(--color-background-primary); }
+.titlebar { height:32px; background:var(--color-background-secondary); display:flex; align-items:center; padding:0 12px; gap:6px; border-bottom:1px solid var(--color-border-tertiary); }
+.tb-dot { width:10px; height:10px; border-radius:50%; }
+.tb-title { font-size:11px; color:var(--color-text-tertiary); margin:0 auto; }
+
+.app-shell { display:flex; height:520px; }
+.sidebar { width:48px; background:var(--color-background-secondary); border-right:1px solid var(--color-border-tertiary); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:4px; flex-shrink:0; }
+.nav-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.nav-icon.active { background:var(--color-background-primary); }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.topbar { height:44px; border-bottom:1px solid var(--color-border-tertiary); display:flex; align-items:center; padding:0 20px; gap:10px; flex-shrink:0; }
+.back-btn { display:flex; align-items:center; gap:4px; font-size:12px; color:var(--color-text-secondary); cursor:pointer; }
+.content { flex:1; padding:20px; overflow:auto; }
+
+.file-card { display:flex; gap:12px; align-items:center; padding:14px; background:var(--color-background-secondary); border-radius:10px; margin-bottom:18px; }
+.file-icon { width:44px; height:44px; border-radius:8px; background:var(--color-background-primary); border:1px solid var(--color-border-tertiary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.file-name { font-size:14px; font-weight:500; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.file-meta { font-size:11px; color:var(--color-text-secondary); }
+
+.stats-row { display:flex; gap:10px; margin-bottom:18px; }
+.stat-card { flex:1; padding:10px; background:var(--color-background-secondary); border-radius:8px; text-align:center; }
+.stat-val { font-size:17px; font-weight:500; }
+.stat-lbl { font-size:10px; color:var(--color-text-tertiary); margin-top:2px; }
+
+.field-label { font-size:11px; color:var(--color-text-secondary); margin-bottom:5px; font-weight:500; }
+.select-field { height:36px; border-radius:8px; border:1px solid var(--color-border-secondary); background:var(--color-background-primary); display:flex; align-items:center; justify-content:space-between; padding:0 12px; font-size:13px; margin-bottom:14px; cursor:pointer; }
+
+.model-panel { border:1px solid var(--color-border-secondary); border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.model-panel-header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; }
+.model-row { display:flex; align-items:center; gap:10px; padding:10px 14px; border-top:1px solid var(--color-border-tertiary); cursor:pointer; transition:background .12s; }
+.model-row:hover { background:var(--color-background-secondary); }
+.model-row.selected { background:var(--color-background-secondary); }
+.radio { width:14px; height:14px; border-radius:50%; border:1.5px solid var(--color-border-secondary); flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.radio.on { border-color:var(--color-text-primary); }
+.radio.on::after { content:''; width:6px; height:6px; border-radius:50%; background:var(--color-text-primary); }
+.model-name { font-size:13px; font-weight:500; flex:1; }
+.model-detail { font-size:11px; color:var(--color-text-secondary); }
+.badge { padding:2px 7px; border-radius:4px; font-size:10px; font-weight:500; }
+.badge-blue { background:var(--color-background-info); color:var(--color-text-info); }
+.badge-green { background:var(--color-background-success); color:var(--color-text-success); }
+.badge-gray { background:var(--color-background-secondary); color:var(--color-text-secondary); border:1px solid var(--color-border-tertiary); }
+.badge-warn { background:var(--color-background-warning); color:var(--color-text-warning); }
+
+.estimate-box { padding:10px 14px; border-radius:8px; border:1px solid var(--color-border-tertiary); font-size:12px; color:var(--color-text-secondary); margin-bottom:16px; display:flex; gap:8px; align-items:center; }
+
+.btn-primary { height:40px; border-radius:10px; background:var(--color-text-primary); color:var(--color-background-primary); font-size:14px; font-weight:500; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.btn-primary.disabled { opacity:0.35; cursor:not-allowed; }
+
+.warning-box { padding:10px 14px; border-radius:8px; border:1px solid var(--color-border-warning); background:var(--color-background-warning); font-size:12px; color:var(--color-text-warning); margin-bottom:14px; display:flex; gap:8px; align-items:flex-start; }
+
+/* anno */
+.anno-wrap { margin-top:20px; }
+.anno-title { font-size:12px; font-weight:500; color:var(--color-text-secondary); margin-bottom:10px; }
+.anno-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.anno-card { padding:10px 12px; border-radius:8px; border:1px solid var(--color-border-tertiary); }
+.anno-name { font-size:12px; font-weight:500; margin-bottom:3px; }
+.anno-desc { font-size:11px; color:var(--color-text-secondary); line-height:1.5; }
+.anno-code { font-size:10px; font-family:var(--font-mono); color:var(--color-text-tertiary); margin-top:4px; }
+</style>
+
+<div>
+<div class="state-nav">
+  <button class="state-btn active" onclick="setPreviewState('ready')">Ready</button>
+  <button class="state-btn" onclick="setPreviewState('model-open')">Model selector open</button>
+  <button class="state-btn" onclick="setPreviewState('low-ram')">Low RAM warning</button>
+  <button class="state-btn" onclick="setPreviewState('no-model')">Model not downloaded</button>
+</div>
+
+<div class="mockup">
+  <div class="titlebar">
+    <div class="tb-dot" style="background:#f96"></div>
+    <div class="tb-dot" style="background:#fc3"></div>
+    <div class="tb-dot" style="background:#6c6"></div>
+    <div class="tb-title">Transcript — File Preview</div>
+  </div>
+  <div class="app-shell">
+    <div class="sidebar">
+      <div class="nav-icon active">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7l6-5 6 5v7H10v-4H6v4H2V7z" stroke="var(--color-text-primary)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="nav-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-text-secondary)" stroke-width="1.2"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <div class="back-btn">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 11L5 7l4-4" stroke="var(--color-text-secondary)" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Home
+        </div>
+        <div style="font-size:14px;font-weight:500">File Preview</div>
+      </div>
+
+      <div class="content">
+        <!-- File card -->
+        <div class="file-card">
+          <div class="file-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12 2H5a1 1 0 00-1 1v14a1 1 0 001 1h10a1 1 0 001-1V7l-4-5z" stroke="var(--color-text-secondary)" stroke-width="1.2"/><path d="M12 2v5h5" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linecap="round"/><path d="M7 11h6M7 14h4" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div class="file-name">interview_2026_03.mp3</div>
+            <div class="file-meta">Added just now</div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-val">24:38</div><div class="stat-lbl">Duration</div></div>
+          <div class="stat-card"><div class="stat-val">48 MB</div><div class="stat-lbl">Size</div></div>
+          <div class="stat-card"><div class="stat-val">MP3</div><div class="stat-lbl">Format</div></div>
+          <div class="stat-card"><div class="stat-val">128k</div><div class="stat-lbl">Bitrate</div></div>
+        </div>
+
+        <!-- Language -->
+        <div class="field-label">Language</div>
+        <div class="select-field" style="margin-bottom:14px">
+          <span>French (FR)</span>
+          <span style="font-size:11px;color:var(--color-text-tertiary)">▾</span>
+        </div>
+
+        <!-- Warning box (low RAM) -->
+        <div class="warning-box" id="low-ram-warn" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;margin-top:1px"><path d="M7 1L13 12H1L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M7 5v3M7 10v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span>VibeVoice INT8 requires ~9 GB RAM. Your system has 8 GB. Consider Whisper Medium instead.</span>
+        </div>
+
+        <!-- Model selector -->
+        <div class="field-label">Model</div>
+        <div class="model-panel">
+          <div class="model-panel-header" onclick="toggleModelPanel()">
+            <div>
+              <div id="selected-model-name" style="font-size:13px;font-weight:500">VibeVoice INT8</div>
+              <div id="selected-model-detail" style="font-size:11px;color:var(--color-text-secondary)">8.5 GB · Diarization · FR + EN</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span class="badge badge-green" id="diari-badge">Diarization ✓</span>
+              <span style="font-size:11px;color:var(--color-text-tertiary)" id="panel-chevron">▾</span>
+            </div>
+          </div>
+
+          <div id="model-options" style="display:none">
+            <div class="model-row selected" onclick="selectModel('vibevoice','VibeVoice INT8','8.5 GB · Diarization · FR + EN',true)">
+              <div class="radio on"></div>
+              <div style="flex:1">
+                <div class="model-name">VibeVoice INT8</div>
+                <div class="model-detail">8.5 GB · FR + EN</div>
+              </div>
+              <span class="badge badge-blue">Recommended</span>
+            </div>
+            <div class="model-row" onclick="selectModel('large','Whisper Large v3','3.1 GB · Multilingual · No diarization',false)">
+              <div class="radio"></div>
+              <div style="flex:1">
+                <div class="model-name">Whisper Large v3</div>
+                <div class="model-detail">3.1 GB · Multilingual</div>
+              </div>
+              <span class="badge badge-gray">Available</span>
+            </div>
+            <div class="model-row" onclick="selectModel('medium','Whisper Medium','1.5 GB · Multilingual · No diarization',false)">
+              <div class="radio"></div>
+              <div style="flex:1">
+                <div class="model-name">Whisper Medium</div>
+                <div class="model-detail">1.5 GB · Multilingual</div>
+              </div>
+              <span class="badge badge-gray">Available</span>
+            </div>
+            <div class="model-row" onclick="selectModel('tiny','Whisper Tiny','150 MB · Bundled · No diarization',false)">
+              <div class="radio"></div>
+              <div style="flex:1">
+                <div class="model-name">Whisper Tiny</div>
+                <div class="model-detail">150 MB · Bundled</div>
+              </div>
+              <span class="badge badge-green">Ready</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model not downloaded warning -->
+        <div id="no-model-warn" style="display:none;margin-bottom:14px">
+          <div class="warning-box" style="margin-bottom:8px">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="flex-shrink:0;margin-top:1px"><path d="M7 1L13 12H1L7 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M7 5v3M7 10v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span>VibeVoice INT8 is not downloaded yet. Download it first or choose Whisper Tiny.</span>
+          </div>
+          <div style="height:36px;border-radius:8px;background:var(--color-background-secondary);border:1px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;cursor:pointer;gap:6px">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v7M7 9l-3-3M7 9l3-3" stroke="var(--color-text-primary)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11h10" stroke="var(--color-text-primary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Download VibeVoice INT8 — 8.5 GB
+          </div>
+        </div>
+
+        <!-- Estimate -->
+        <div class="estimate-box" id="estimate-box">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="var(--color-text-tertiary)" stroke-width="1.1"/><path d="M7 4v3.5l2 1.5" stroke="var(--color-text-tertiary)" stroke-width="1.1" stroke-linecap="round"/></svg>
+          <span id="estimate-text">Estimated ~19 min at 1.3× RTFx on CPU</span>
+        </div>
+
+        <!-- CTA -->
+        <div class="btn-primary" id="start-btn">Start Transcription</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Component annotations -->
+<div class="anno-wrap">
+  <div class="anno-title">Leptos components</div>
+  <div class="anno-grid">
+    <div class="anno-card">
+      <div class="anno-name">FileInfoCard</div>
+      <div class="anno-desc">Affiche nom, durée, taille, format. Données lues via commande Tauri <code>get_audio_info</code>.</div>
+      <div class="anno-code">components/file_info_card.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">ModelSelector</div>
+      <div class="anno-desc">Dropdown réactif. Filtre les modèles compatibles via le signal <code>hardware_tier</code>. Signal <code>selected_model: RwSignal</code>.</div>
+      <div class="anno-code">components/model_selector.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">EstimateBox</div>
+      <div class="anno-desc">Calcul local : durée ÷ RTFx du modèle sélectionné. Réactif — se met à jour instantanément au changement de modèle.</div>
+      <div class="anno-code">components/estimate_box.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">HardwareWarning</div>
+      <div class="anno-desc">Affiché si RAM disponible &lt; RAM requise par le modèle. Lu depuis le signal global <code>hardware_info</code>.</div>
+      <div class="anno-code">components/hardware_warning.rs</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const modelData = {
+  vibevoice: { name:'VibeVoice INT8', detail:'8.5 GB · Diarization · FR + EN', diari:true, estimate:'~19 min at 1.3× RTFx on CPU' },
+  large:     { name:'Whisper Large v3', detail:'3.1 GB · Multilingual · No diarization', diari:false, estimate:'~22 min at 1.1× RTFx on CPU' },
+  medium:    { name:'Whisper Medium', detail:'1.5 GB · Multilingual · No diarization', diari:false, estimate:'~28 min at 0.9× RTFx on CPU' },
+  tiny:      { name:'Whisper Tiny', detail:'150 MB · Bundled · No diarization', diari:false, estimate:'~48 min at 0.5× RTFx on CPU' },
+};
+let currentModel = 'vibevoice';
+let panelOpen = false;
+
+function toggleModelPanel() {
+  panelOpen = !panelOpen;
+  document.getElementById('model-options').style.display = panelOpen ? 'block' : 'none';
+  document.getElementById('panel-chevron').textContent = panelOpen ? '▴' : '▾';
+}
+
+function selectModel(id, name, detail, diari) {
+  currentModel = id;
+  document.getElementById('selected-model-name').textContent = name;
+  document.getElementById('selected-model-detail').textContent = detail;
+  document.getElementById('diari-badge').textContent = diari ? 'Diarization ✓' : 'No diarization';
+  document.getElementById('diari-badge').className = 'badge ' + (diari ? 'badge-green' : 'badge-gray');
+  document.getElementById('estimate-text').textContent = 'Estimated ' + modelData[id].estimate;
+  document.querySelectorAll('.model-row').forEach(r => r.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.querySelectorAll('.radio').forEach(r => r.classList.remove('on'));
+  event.currentTarget.querySelector('.radio').classList.add('on');
+  panelOpen = false;
+  document.getElementById('model-options').style.display = 'none';
+  document.getElementById('panel-chevron').textContent = '▾';
+}
+
+function setPreviewState(s) {
+  document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('low-ram-warn').style.display = 'none';
+  document.getElementById('no-model-warn').style.display = 'none';
+  document.getElementById('start-btn').classList.remove('disabled');
+  document.getElementById('model-options').style.display = 'none';
+  panelOpen = false;
+  document.getElementById('panel-chevron').textContent = '▾';
+
+  if (s === 'model-open') {
+    document.getElementById('model-options').style.display = 'block';
+    panelOpen = true;
+    document.getElementById('panel-chevron').textContent = '▴';
+  } else if (s === 'low-ram') {
+    document.getElementById('low-ram-warn').style.display = 'flex';
+  } else if (s === 'no-model') {
+    document.getElementById('no-model-warn').style.display = 'block';
+    document.getElementById('start-btn').classList.add('disabled');
+  }
+}
+</script>

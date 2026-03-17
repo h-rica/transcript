@@ -6,7 +6,7 @@
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:8080",
-    "beforeDevCommand": "trunk serve",
+    "beforeDevCommand": "cargo run --quiet --manifest-path scripts/dev-helper/Cargo.toml -- start --repo-root .",
     "beforeBuildCommand": "trunk build --release"
   },
   "app": {
@@ -34,7 +34,11 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "resources/ggml-tiny.bin": "models/ggml-tiny.bin"
+      "resources/ggml-tiny.bin": "models/ggml-tiny.bin",
+      "resources/onnx/vibevoice_acoustic.onnx": "models/onnx/vibevoice_acoustic.onnx",
+      "resources/onnx/vibevoice_acoustic.onnx.data": "models/onnx/vibevoice_acoustic.onnx.data",
+      "resources/onnx/vibevoice_semantic.onnx": "models/onnx/vibevoice_semantic.onnx",
+      "resources/onnx/vibevoice_semantic.onnx.data": "models/onnx/vibevoice_semantic.onnx.data"
     }
   }
 }

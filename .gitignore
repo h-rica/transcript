@@ -25,3 +25,8 @@ docs/design.md
 src-tauri/resources/*.bin
 src-tauri/resources/*.onnx
 src-tauri/resources/*.data
+src-tauri/resources/**/*.data
+
+Cargo.lock
+**/Cargo.lock
+.dev-helper-state

@@ -1,0 +1,332 @@
+
+<style>
+.state-nav { display:flex; gap:8px; padding:0 0 16px; flex-wrap:wrap; }
+.state-btn { padding:6px 14px; border-radius:20px; border:1px solid var(--color-border-secondary); font-size:12px; cursor:pointer; color:var(--color-text-secondary); background:transparent; transition:all .15s; }
+.state-btn.active { background:var(--color-text-primary); color:var(--color-background-primary); border-color:var(--color-text-primary); }
+
+.mockup { border:1px solid var(--color-border-tertiary); border-radius:12px; overflow:hidden; background:var(--color-background-primary); }
+.titlebar { height:32px; background:var(--color-background-secondary); display:flex; align-items:center; padding:0 12px; gap:6px; border-bottom:1px solid var(--color-border-tertiary); }
+.tb-dot { width:10px; height:10px; border-radius:50%; }
+.tb-title { font-size:11px; color:var(--color-text-tertiary); margin:0 auto; }
+
+.app-shell { display:flex; height:520px; }
+.sidebar { width:48px; background:var(--color-background-secondary); border-right:1px solid var(--color-border-tertiary); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:4px; flex-shrink:0; }
+.nav-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.nav-icon.active { background:var(--color-background-primary); }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+.topbar { height:44px; border-bottom:1px solid var(--color-border-tertiary); display:flex; align-items:center; padding:0 16px; gap:8px; flex-shrink:0; }
+.back-btn { display:flex;align-items:center;gap:4px;font-size:12px;color:var(--color-text-secondary);cursor:pointer;flex-shrink:0; }
+.topbar-title { font-size:13px;font-weight:500;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.btn-sm { height:30px; padding:0 12px; border-radius:6px; font-size:12px; display:flex; align-items:center; gap:5px; cursor:pointer; flex-shrink:0; }
+.btn-sm-sec { border:1px solid var(--color-border-secondary); color:var(--color-text-secondary); }
+.btn-sm-pri { background:var(--color-text-primary); color:var(--color-background-primary); font-weight:500; }
+
+/* tabs */
+.tabs-bar { display:flex; border-bottom:1px solid var(--color-border-tertiary); padding:0 16px; flex-shrink:0; }
+.tab { padding:10px 14px; font-size:12px; color:var(--color-text-secondary); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all .12s; white-space:nowrap; }
+.tab.active { color:var(--color-text-primary); border-bottom-color:var(--color-text-primary); font-weight:500; }
+
+/* content */
+.tab-content { flex:1; overflow:auto; padding:16px; }
+
+/* speakers tab */
+.speaker-filter { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+.spk-chip { display:flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; border:1px solid var(--color-border-secondary); font-size:11px; cursor:pointer; transition:all .12s; }
+.spk-chip.active { border-color:var(--color-text-primary); background:var(--color-background-secondary); font-weight:500; }
+.spk-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+.seg { display:flex; gap:10px; margin-bottom:12px; }
+.avatar { width:28px; height:28px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:500; margin-top:1px; }
+.seg-body { flex:1; }
+.seg-header { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.seg-speaker { font-size:11px; font-weight:500; }
+.seg-time { font-size:10px; color:var(--color-text-tertiary); }
+.seg-text { font-size:13px; line-height:1.65; }
+.seg-text.hidden { display:none; }
+
+/* timeline tab */
+.timeline-wrap { position:relative; padding-left:16px; }
+.timeline-line { position:absolute; left:20px; top:0; bottom:0; width:1px; background:var(--color-border-tertiary); }
+.tl-item { display:flex; gap:12px; margin-bottom:14px; position:relative; }
+.tl-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:4px; position:relative; z-index:1; }
+.tl-content { flex:1; }
+.tl-time { font-size:10px; color:var(--color-text-tertiary); margin-bottom:2px; }
+.tl-text { font-size:12px; line-height:1.55; }
+
+/* raw tab */
+.raw-block { font-family:var(--font-mono); font-size:11px; line-height:1.7; color:var(--color-text-secondary); white-space:pre-wrap; }
+.raw-ts { color:var(--color-text-tertiary); }
+.raw-sp { font-weight:500; }
+
+/* export panel */
+.export-panel { position:absolute; right:16px; top:44px; width:200px; background:var(--color-background-primary); border:1px solid var(--color-border-secondary); border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.08); z-index:10; overflow:hidden; }
+.export-item { display:flex; align-items:center; gap:10px; padding:10px 14px; font-size:13px; cursor:pointer; transition:background .12s; }
+.export-item:hover { background:var(--color-background-secondary); }
+.export-icon { width:28px; height:28px; border-radius:6px; background:var(--color-background-secondary); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.export-desc { font-size:10px; color:var(--color-text-tertiary); margin-top:1px; }
+.export-divider { height:1px; background:var(--color-border-tertiary); }
+
+/* anno */
+.anno-wrap { margin-top:20px; }
+.anno-title { font-size:12px; font-weight:500; color:var(--color-text-secondary); margin-bottom:10px; }
+.anno-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.anno-card { padding:10px 12px; border-radius:8px; border:1px solid var(--color-border-tertiary); }
+.anno-name { font-size:12px; font-weight:500; margin-bottom:3px; }
+.anno-desc { font-size:11px; color:var(--color-text-secondary); line-height:1.5; }
+.anno-code { font-size:10px; font-family:var(--font-mono); color:var(--color-text-tertiary); margin-top:4px; }
+</style>
+
+<div>
+<div class="state-nav">
+  <button class="state-btn active" onclick="setTab('speakers')">Speakers</button>
+  <button class="state-btn" onclick="setTab('timeline')">Timeline</button>
+  <button class="state-btn" onclick="setTab('raw')">Raw</button>
+  <button class="state-btn" onclick="setTab('export')">Export panel open</button>
+</div>
+
+<div class="mockup">
+  <div class="titlebar">
+    <div class="tb-dot" style="background:#f96"></div>
+    <div class="tb-dot" style="background:#fc3"></div>
+    <div class="tb-dot" style="background:#6c6"></div>
+    <div class="tb-title">Transcript — View</div>
+  </div>
+  <div class="app-shell">
+    <div class="sidebar">
+      <div class="nav-icon active">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7l6-5 6 5v7H10v-4H6v4H2V7z" stroke="var(--color-text-primary)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="nav-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-text-secondary)" stroke-width="1.2"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <div class="main" style="position:relative">
+      <div class="topbar">
+        <div class="back-btn">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 11L5 7l4-4" stroke="var(--color-text-secondary)" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Home
+        </div>
+        <div class="topbar-title">interview_2026_03.mp3</div>
+        <div class="btn-sm btn-sm-sec">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.1"/><path d="M4 4h4M4 6h4M4 8h2" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+          Copy all
+        </div>
+        <div class="btn-sm btn-sm-pri" id="export-trigger" onclick="setTab('export')">
+          Export
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+
+      <!-- Export panel overlay -->
+      <div id="export-panel" class="export-panel" style="display:none">
+        <div class="export-item">
+          <div class="export-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="var(--color-text-secondary)" stroke-width="1.1"/><path d="M3 5h8M3 7.5h6M3 10h4" stroke="var(--color-text-secondary)" stroke-width="1.1" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <div>Plain text</div>
+            <div class="export-desc">.txt — no timestamps</div>
+          </div>
+        </div>
+        <div class="export-item">
+          <div class="export-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="var(--color-text-info)" stroke-width="1.1"/><path d="M3 5h8M3 7.5h6M3 10h4" stroke="var(--color-text-info)" stroke-width="1.1" stroke-linecap="round"/></svg>
+          </div>
+          <div>
+            <div>SRT subtitles</div>
+            <div class="export-desc">.srt — with timestamps</div>
+          </div>
+        </div>
+        <div class="export-divider"></div>
+        <div class="export-item" style="opacity:0.4">
+          <div class="export-icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="var(--color-text-secondary)" stroke-width="1.1"/></svg>
+          </div>
+          <div>
+            <div>Word document</div>
+            <div class="export-desc">.docx — coming in v0.2</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs-bar">
+        <div class="tab active" id="tab-speakers" onclick="setTab('speakers')">Speakers</div>
+        <div class="tab" id="tab-timeline" onclick="setTab('timeline')">Timeline</div>
+        <div class="tab" id="tab-raw" onclick="setTab('raw')">Raw</div>
+      </div>
+
+      <!-- Speakers tab -->
+      <div class="tab-content" id="content-speakers">
+        <div class="speaker-filter">
+          <div class="spk-chip active" id="chip-all" onclick="filterSpeaker('all')">All speakers</div>
+          <div class="spk-chip" id="chip-a" onclick="filterSpeaker('A')">
+            <div class="spk-dot" style="background:#3b82f6"></div>Speaker A
+          </div>
+          <div class="spk-chip" id="chip-b" onclick="filterSpeaker('B')">
+            <div class="spk-dot" style="background:#ec4899"></div>Speaker B
+          </div>
+        </div>
+
+        <div id="seg-a1" class="seg">
+          <div class="avatar" style="background:#dbeafe;color:#1d4ed8">A</div>
+          <div class="seg-body">
+            <div class="seg-header">
+              <span class="seg-speaker" style="color:#1d4ed8">Speaker A</span>
+              <span class="seg-time">00:00:04 → 00:00:18</span>
+            </div>
+            <div class="seg-text">Bonjour et bienvenue dans cette émission. Aujourd'hui nous allons parler d'intelligence artificielle et de ses applications concrètes.</div>
+          </div>
+        </div>
+        <div id="seg-b1" class="seg">
+          <div class="avatar" style="background:#fce7f3;color:#9d174d">B</div>
+          <div class="seg-body">
+            <div class="seg-header">
+              <span class="seg-speaker" style="color:#9d174d">Speaker B</span>
+              <span class="seg-time">00:00:19 → 00:00:31</span>
+            </div>
+            <div class="seg-text">Merci de nous rejoindre. C'est en effet un sujet qui évolue très rapidement ces dernières années.</div>
+          </div>
+        </div>
+        <div id="seg-a2" class="seg">
+          <div class="avatar" style="background:#dbeafe;color:#1d4ed8">A</div>
+          <div class="seg-body">
+            <div class="seg-header">
+              <span class="seg-speaker" style="color:#1d4ed8">Speaker A</span>
+              <span class="seg-time">00:00:32 → 00:00:44</span>
+            </div>
+            <div class="seg-text">Exactement. Et aujourd'hui nous avons justement un expert pour nous en parler en détail.</div>
+          </div>
+        </div>
+        <div id="seg-b2" class="seg">
+          <div class="avatar" style="background:#fce7f3;color:#9d174d">B</div>
+          <div class="seg-body">
+            <div class="seg-header">
+              <span class="seg-speaker" style="color:#9d174d">Speaker B</span>
+              <span class="seg-time">00:00:45 → 00:01:02</span>
+            </div>
+            <div class="seg-text">Bien sûr. Je travaille sur les modèles de langage depuis maintenant cinq ans, principalement sur les architectures transformers.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline tab -->
+      <div class="tab-content" id="content-timeline" style="display:none">
+        <div class="timeline-wrap">
+          <div class="timeline-line"></div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#3b82f6"></div>
+            <div class="tl-content">
+              <div class="tl-time">00:00:04 — Speaker A</div>
+              <div class="tl-text">Bonjour et bienvenue dans cette émission. Aujourd'hui nous allons parler d'intelligence artificielle…</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#ec4899"></div>
+            <div class="tl-content">
+              <div class="tl-time">00:00:19 — Speaker B</div>
+              <div class="tl-text">Merci de nous rejoindre. C'est en effet un sujet qui évolue très rapidement…</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#3b82f6"></div>
+            <div class="tl-content">
+              <div class="tl-time">00:00:32 — Speaker A</div>
+              <div class="tl-text">Exactement. Et aujourd'hui nous avons un expert pour nous en parler en détail.</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#ec4899"></div>
+            <div class="tl-content">
+              <div class="tl-time">00:00:45 — Speaker B</div>
+              <div class="tl-text">Bien sûr. Je travaille sur les modèles de langage depuis maintenant cinq ans…</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:#3b82f6"></div>
+            <div class="tl-content">
+              <div class="tl-time">00:01:03 — Speaker A</div>
+              <div class="tl-text">Pouvez-vous nous expliquer ce qu'est exactement un modèle de langage ?</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raw tab -->
+      <div class="tab-content" id="content-raw" style="display:none">
+        <div class="raw-block"><span class="raw-ts">[00:00:04 → 00:00:18]</span> <span class="raw-sp">Speaker A:</span>
+Bonjour et bienvenue dans cette émission. Aujourd'hui nous allons parler d'intelligence artificielle et de ses applications concrètes.
+
+<span class="raw-ts">[00:00:19 → 00:00:31]</span> <span class="raw-sp">Speaker B:</span>
+Merci de nous rejoindre. C'est en effet un sujet qui évolue très rapidement ces dernières années.
+
+<span class="raw-ts">[00:00:32 → 00:00:44]</span> <span class="raw-sp">Speaker A:</span>
+Exactement. Et aujourd'hui nous avons justement un expert pour nous en parler en détail.
+
+<span class="raw-ts">[00:00:45 → 00:01:02]</span> <span class="raw-sp">Speaker B:</span>
+Bien sûr. Je travaille sur les modèles de langage depuis maintenant cinq ans, principalement sur les architectures transformers.</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Annotations -->
+<div class="anno-wrap">
+  <div class="anno-title">Leptos components</div>
+  <div class="anno-grid">
+    <div class="anno-card">
+      <div class="anno-name">TranscriptTabs</div>
+      <div class="anno-desc">Signal local <code>active_tab: RwSignal&lt;Tab&gt;</code>. Chaque onglet est un composant enfant rendu conditionnellement via <code>Show</code>.</div>
+      <div class="anno-code">components/transcript_tabs.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">SpeakerFilter</div>
+      <div class="anno-desc">Signal <code>active_speaker: RwSignal&lt;Option&lt;SpeakerId&gt;&gt;</code>. Les segments sont filtrés via un <code>Memo</code> dérivé.</div>
+      <div class="anno-code">components/speaker_filter.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">ExportPanel</div>
+      <div class="anno-desc">Dropdown positionné en absolu. Chaque item déclenche la commande Tauri <code>export_transcript</code> avec le format choisi.</div>
+      <div class="anno-code">components/export_panel.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">RawView</div>
+      <div class="anno-desc">Texte brut formaté avec timestamps. Bouton copy-to-clipboard via l'API Tauri <code>clipboard</code>. Aucun IPC requis.</div>
+      <div class="anno-code">components/raw_view.rs</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+function setTab(t) {
+  document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('[id^="content-"]').forEach(c => c.style.display = 'none');
+  document.getElementById('export-panel').style.display = 'none';
+
+  if (t === 'export') {
+    document.getElementById('export-panel').style.display = 'block';
+    document.getElementById('content-speakers').style.display = 'block';
+    document.getElementById('tab-speakers').classList.add('active');
+    document.querySelectorAll('.state-btn')[3].classList.add('active');
+    return;
+  }
+
+  const idx = { speakers: 0, timeline: 1, raw: 2 }[t];
+  document.querySelectorAll('.state-btn')[idx].classList.add('active');
+  document.getElementById('tab-' + t).classList.add('active');
+  document.getElementById('content-' + t).style.display = 'block';
+}
+
+function filterSpeaker(s) {
+  ['all','a','b'].forEach(id => document.getElementById('chip-'+id).classList.remove('active'));
+  document.getElementById('chip-' + s.toLowerCase()).classList.add('active');
+  const segs = { all: ['seg-a1','seg-b1','seg-a2','seg-b2'], A: ['seg-a1','seg-a2'], B: ['seg-b1','seg-b2'] };
+  ['seg-a1','seg-b1','seg-a2','seg-b2'].forEach(id => {
+    document.getElementById(id).style.display = segs[s].includes(id) ? 'flex' : 'none';
+  });
+}
+</script>

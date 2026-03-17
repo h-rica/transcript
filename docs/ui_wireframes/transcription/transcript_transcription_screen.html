@@ -1,0 +1,282 @@
+
+<style>
+.state-nav { display:flex; gap:8px; padding:0 0 16px; flex-wrap:wrap; }
+.state-btn { padding:6px 14px; border-radius:20px; border:1px solid var(--color-border-secondary); font-size:12px; cursor:pointer; color:var(--color-text-secondary); background:transparent; transition:all .15s; }
+.state-btn.active { background:var(--color-text-primary); color:var(--color-background-primary); border-color:var(--color-text-primary); }
+
+.mockup { border:1px solid var(--color-border-tertiary); border-radius:12px; overflow:hidden; background:var(--color-background-primary); }
+.titlebar { height:32px; background:var(--color-background-secondary); display:flex; align-items:center; padding:0 12px; gap:6px; border-bottom:1px solid var(--color-border-tertiary); }
+.tb-dot { width:10px; height:10px; border-radius:50%; }
+.tb-title { font-size:11px; color:var(--color-text-tertiary); margin:0 auto; }
+
+.app-shell { display:flex; height:520px; }
+.sidebar { width:48px; background:var(--color-background-secondary); border-right:1px solid var(--color-border-tertiary); display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:4px; flex-shrink:0; }
+.nav-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.nav-icon.active { background:var(--color-background-primary); }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.topbar { height:44px; border-bottom:1px solid var(--color-border-tertiary); display:flex; align-items:center; padding:0 20px; gap:10px; flex-shrink:0; }
+.content { flex:1; padding:20px; overflow:auto; display:flex; flex-direction:column; gap:0; }
+
+/* progress */
+.progress-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.progress-track { height:6px; border-radius:3px; background:var(--color-border-tertiary); overflow:hidden; margin-bottom:6px; }
+.progress-fill { height:100%; border-radius:3px; background:var(--color-text-primary); transition:width .5s; }
+.progress-meta { display:flex; justify-content:space-between; font-size:11px; color:var(--color-text-tertiary); margin-bottom:18px; }
+
+/* pulse dot */
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.pulse-dot { width:8px; height:8px; border-radius:50%; background:var(--color-text-primary); animation:pulse 1.4s ease-in-out infinite; display:inline-block; }
+
+/* segments */
+.segs-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.segs-list { display:flex; flex-direction:column; gap:10px; flex:1; }
+.seg { display:flex; gap:10px; }
+.avatar { width:28px; height:28px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:500; margin-top:2px; }
+.bubble { background:var(--color-background-secondary); border-radius:8px; padding:8px 10px; font-size:12px; line-height:1.55; flex:1; }
+.seg-time { font-size:10px; color:var(--color-text-tertiary); margin-top:4px; }
+
+/* cursor blink */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.cursor { display:inline-block; width:7px; height:12px; background:var(--color-text-primary); border-radius:1px; vertical-align:middle; margin-left:2px; animation:blink 1s step-end infinite; }
+
+/* loading state */
+.loading-state { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; gap:12px; }
+.spinner { width:32px; height:32px; border:2px solid var(--color-border-tertiary); border-top-color:var(--color-text-primary); border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* complete state */
+.complete-banner { padding:12px 14px; border-radius:10px; background:var(--color-background-success); border:1px solid var(--color-border-success,var(--color-text-success)); display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+
+/* cancel btn */
+.btn-cancel { height:36px; border-radius:8px; border:1px solid var(--color-border-secondary); font-size:13px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--color-text-secondary); margin-top:auto; }
+.btn-primary { height:40px; border-radius:10px; background:var(--color-text-primary); color:var(--color-background-primary); font-size:14px; font-weight:500; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-top:auto; }
+
+/* anno */
+.anno-wrap { margin-top:20px; }
+.anno-title { font-size:12px; font-weight:500; color:var(--color-text-secondary); margin-bottom:10px; }
+.anno-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.anno-card { padding:10px 12px; border-radius:8px; border:1px solid var(--color-border-tertiary); }
+.anno-name { font-size:12px; font-weight:500; margin-bottom:3px; }
+.anno-desc { font-size:11px; color:var(--color-text-secondary); line-height:1.5; }
+.anno-code { font-size:10px; font-family:var(--font-mono); color:var(--color-text-tertiary); margin-top:4px; }
+</style>
+
+<div>
+<div class="state-nav">
+  <button class="state-btn" onclick="setState('loading')">Loading model</button>
+  <button class="state-btn active" onclick="setState('running')">Running — 64%</button>
+  <button class="state-btn" onclick="setState('almost')">Almost done — 95%</button>
+  <button class="state-btn" onclick="setState('complete')">Complete</button>
+</div>
+
+<div class="mockup">
+  <div class="titlebar">
+    <div class="tb-dot" style="background:#f96"></div>
+    <div class="tb-dot" style="background:#fc3"></div>
+    <div class="tb-dot" style="background:#6c6"></div>
+    <div class="tb-title" id="tb-title">Transcript — Transcribing…</div>
+  </div>
+  <div class="app-shell">
+    <div class="sidebar">
+      <div class="nav-icon active">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 7l6-5 6 5v7H10v-4H6v4H2V7z" stroke="var(--color-text-primary)" stroke-width="1.2" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="nav-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="var(--color-text-secondary)" stroke-width="1.2"/><path d="M5 8h6M5 5.5h6M5 10.5h4" stroke="var(--color-text-secondary)" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span id="topbar-dot" class="pulse-dot"></span>
+          <span id="topbar-label" style="font-size:13px;font-weight:500">Transcribing</span>
+        </div>
+        <div style="font-size:12px;color:var(--color-text-tertiary)">interview_2026_03.mp3</div>
+      </div>
+
+      <div class="content">
+
+        <!-- Loading state -->
+        <div class="loading-state" id="state-loading" style="display:none">
+          <div class="spinner"></div>
+          <div style="font-size:13px;font-weight:500">Loading VibeVoice INT8…</div>
+          <div style="font-size:12px;color:var(--color-text-secondary)">Initialising ONNX sessions</div>
+          <div style="font-size:11px;color:var(--color-text-tertiary)">This may take a few seconds</div>
+        </div>
+
+        <!-- Running / Almost state -->
+        <div id="state-running">
+          <!-- Progress -->
+          <div class="progress-header">
+            <div style="font-size:13px;font-weight:500" id="prog-label">Transcribing…</div>
+            <div style="font-size:13px;font-weight:500" id="prog-pct">64%</div>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="prog-fill" style="width:64%"></div>
+          </div>
+          <div class="progress-meta">
+            <span id="elapsed-label">Elapsed 00:15:44</span>
+            <span id="speed-label">Speed 1.3× · ETA 08:52</span>
+          </div>
+
+          <!-- Speaker legend -->
+          <div class="segs-header">
+            <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary)">Live segments</div>
+            <div style="display:flex;gap:10px">
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#3b82f6"></div>Speaker A
+              </div>
+              <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ec4899"></div>Speaker B
+              </div>
+            </div>
+          </div>
+
+          <div class="segs-list">
+            <div class="seg">
+              <div class="avatar" style="background:#dbeafe;color:#1d4ed8">A</div>
+              <div>
+                <div class="bubble">Bonjour et bienvenue dans cette émission. Aujourd'hui nous allons parler d'intelligence artificielle et de ses applications.</div>
+                <div class="seg-time">00:00:04 → 00:00:18</div>
+              </div>
+            </div>
+            <div class="seg">
+              <div class="avatar" style="background:#fce7f3;color:#9d174d">B</div>
+              <div>
+                <div class="bubble">Merci de nous rejoindre. C'est en effet un sujet qui évolue très rapidement ces dernières années.</div>
+                <div class="seg-time">00:00:19 → 00:00:31</div>
+              </div>
+            </div>
+            <div class="seg">
+              <div class="avatar" style="background:#dbeafe;color:#1d4ed8">A</div>
+              <div>
+                <div class="bubble">Exactement. Et aujourd'hui nous avons un expert pour nous en parler. Pouvez-vous vous présenter ?</div>
+                <div class="seg-time">00:00:32 → 00:00:44</div>
+              </div>
+            </div>
+            <div class="seg" id="live-seg">
+              <div class="avatar" style="background:#fce7f3;color:#9d174d">B</div>
+              <div>
+                <div class="bubble" style="opacity:0.6" id="live-bubble">Bien sûr, je travaille sur les modèles de langage depuis<span class="cursor"></span></div>
+                <div class="seg-time" style="opacity:0.4">00:15:41 → …</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="btn-cancel" id="cancel-btn">Cancel transcription</div>
+        </div>
+
+        <!-- Complete state -->
+        <div id="state-complete" style="display:none;flex-direction:column;flex:1">
+          <div class="complete-banner">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="var(--color-text-success)" stroke-width="1.3"/><path d="M5.5 9l2.5 2.5 4.5-4.5" stroke="var(--color-text-success)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--color-text-success)">Transcription complete</div>
+              <div style="font-size:11px;color:var(--color-text-success);opacity:0.8">24:38 transcribed in 18 min 52s · avg 1.3× RTFx</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;padding:12px;background:var(--color-background-secondary);border-radius:8px">
+            <div style="text-align:center;flex:1"><div style="font-size:17px;font-weight:500">47</div><div style="font-size:10px;color:var(--color-text-tertiary)">Segments</div></div>
+            <div style="text-align:center;flex:1"><div style="font-size:17px;font-weight:500">2</div><div style="font-size:10px;color:var(--color-text-tertiary)">Speakers</div></div>
+            <div style="text-align:center;flex:1"><div style="font-size:17px;font-weight:500">4,218</div><div style="font-size:10px;color:var(--color-text-tertiary)">Words</div></div>
+            <div style="text-align:center;flex:1"><div style="font-size:17px;font-weight:500">FR</div><div style="font-size:10px;color:var(--color-text-tertiary)">Language</div></div>
+          </div>
+          <div class="segs-list" style="flex:unset">
+            <div class="seg">
+              <div class="avatar" style="background:#dbeafe;color:#1d4ed8">A</div>
+              <div><div class="bubble">Bonjour et bienvenue dans cette émission…</div><div class="seg-time">00:00:04 → 00:00:18</div></div>
+            </div>
+            <div class="seg">
+              <div class="avatar" style="background:#fce7f3;color:#9d174d">B</div>
+              <div><div class="bubble">Merci de nous rejoindre. C'est un sujet…</div><div class="seg-time">00:00:19 → 00:00:31</div></div>
+            </div>
+          </div>
+          <div class="btn-primary" style="margin-top:16px">View full transcript →</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Annotations -->
+<div class="anno-wrap">
+  <div class="anno-title">Leptos components + IPC events</div>
+  <div class="anno-grid">
+    <div class="anno-card">
+      <div class="anno-name">ProgressBar</div>
+      <div class="anno-desc">Réactif sur l'événement Tauri <code>transcription_progress</code>. Signal <code>percent: RwSignal&lt;f32&gt;</code> mis à jour via <code>listen()</code>.</div>
+      <div class="anno-code">components/progress_bar.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">LiveSegmentList</div>
+      <div class="anno-desc">Écoute <code>transcription_segment</code>. Chaque segment pushé dans un <code>RwSignal&lt;Vec&lt;Segment&gt;&gt;</code>. Auto-scroll vers le bas.</div>
+      <div class="anno-code">components/live_segment_list.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">SpeedMeter</div>
+      <div class="anno-desc">Calcule RTFx et ETA à chaque event <code>progress</code>. Dérivé de <code>elapsed</code> et <code>percent</code>. Memo réactif.</div>
+      <div class="anno-code">components/speed_meter.rs</div>
+    </div>
+    <div class="anno-card">
+      <div class="anno-name">IPC events (Rust → UI)</div>
+      <div class="anno-desc"><code>transcription_progress</code> → percent, elapsed<br><code>transcription_segment</code> → speaker, text, start, end<br><code>transcription_complete</code> → stats summary</div>
+      <div class="anno-code">commands/transcribe.rs</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const states = {
+  loading: {
+    pct: 0, elapsed: '00:00:02', speed: 'Loading model…', label: 'Loading model',
+    topLabel: 'Loading', tbTitle: 'Transcript — Loading…',
+    showLive: false, showComplete: false
+  },
+  running: {
+    pct: 64, elapsed: 'Elapsed 00:15:44', speed: 'Speed 1.3× · ETA 08:52', label: 'Transcribing…',
+    topLabel: 'Transcribing', tbTitle: 'Transcript — Transcribing…',
+    showLive: true, showComplete: false
+  },
+  almost: {
+    pct: 95, elapsed: 'Elapsed 00:23:01', speed: 'Speed 1.3× · ETA 01:12', label: 'Transcribing…',
+    topLabel: 'Transcribing', tbTitle: 'Transcript — Transcribing…',
+    showLive: true, showComplete: false
+  },
+  complete: {
+    pct: 100, elapsed: '', speed: '', label: 'Complete',
+    topLabel: 'Complete', tbTitle: 'Transcript — Done',
+    showLive: false, showComplete: true
+  },
+};
+
+function setState(s) {
+  document.querySelectorAll('.state-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  const d = states[s];
+
+  document.getElementById('tb-title').textContent = d.tbTitle;
+  document.getElementById('topbar-label').textContent = d.topLabel;
+  document.getElementById('state-loading').style.display = s === 'loading' ? 'flex' : 'none';
+  document.getElementById('state-running').style.display = (s === 'running' || s === 'almost') ? 'block' : 'none';
+  document.getElementById('state-complete').style.display = s === 'complete' ? 'flex' : 'none';
+
+  const dot = document.getElementById('topbar-dot');
+  dot.style.display = s === 'complete' ? 'none' : 'inline-block';
+
+  if (s !== 'loading' && s !== 'complete') {
+    document.getElementById('prog-fill').style.width = d.pct + '%';
+    document.getElementById('prog-pct').textContent = d.pct + '%';
+    document.getElementById('prog-label').textContent = d.label;
+    document.getElementById('elapsed-label').textContent = d.elapsed;
+    document.getElementById('speed-label').textContent = d.speed;
+  }
+}
+
+// init
+document.getElementById('state-running').style.display = 'block';
+document.getElementById('state-loading').style.display = 'none';
+document.getElementById('state-complete').style.display = 'none';
+</script>
