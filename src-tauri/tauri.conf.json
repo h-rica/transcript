@@ -6,7 +6,7 @@
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:8080",
-    "beforeDevCommand": "trunk serve",
+    "beforeDevCommand": "cargo run --quiet --manifest-path scripts/dev-helper/Cargo.toml -- start --repo-root .",
     "beforeBuildCommand": "trunk build --release"
   },
   "app": {
