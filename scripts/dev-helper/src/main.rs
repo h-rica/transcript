@@ -2,15 +2,18 @@ use std::{
     env,
     error::Error,
     fs,
+    io::{Read, Write},
+    net::TcpStream,
     path::{Path, PathBuf},
     process::{self, Command, ExitCode, Stdio},
     thread,
-    time::Duration,
+    time::{Duration, Instant},
 };
 
 use sysinfo::{Pid, ProcessesToUpdate, Signal, System};
 
 const STATE_FILE: &str = ".dev-helper-state";
+const DEV_SERVER_ADDR: &str = "127.0.0.1:8080";
 
 #[derive(Clone, Debug)]
 enum Mode {
@@ -77,6 +80,18 @@ fn parse_args(mut args: impl Iterator<Item = String>) -> Result<Mode, Box<dyn Er
 fn start(repo_root: PathBuf) -> Result<ExitCode, Box<dyn Error>> {
     cleanup(&repo_root, None)?;
 
+    let build_status = Command::new("trunk")
+        .arg("build")
+        .current_dir(&repo_root)
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status()?;
+
+    if !build_status.success() {
+        return Ok(ExitCode::from(build_status.code().unwrap_or(1) as u8));
+    }
+
     let mut trunk = Command::new("trunk")
         .arg("serve")
         .current_dir(&repo_root)
@@ -86,10 +101,14 @@ fn start(repo_root: PathBuf) -> Result<ExitCode, Box<dyn Error>> {
         .spawn()?;
 
     write_state(&repo_root, trunk.id())?;
-    let status = trunk.wait()?;
-    clear_state(&repo_root);
 
-    Ok(ExitCode::from(status.code().unwrap_or(1) as u8))
+    match wait_for_dev_server(&mut trunk, Duration::from_secs(45))? {
+        true => Ok(ExitCode::SUCCESS),
+        false => {
+            clear_state(&repo_root);
+            Ok(ExitCode::from(1))
+        }
+    }
 }
 
 fn cleanup(repo_root: &Path, app_pid: Option<u32>) -> Result<(), Box<dyn Error>> {
@@ -196,4 +215,45 @@ fn remove_dir_if_exists(path: &Path) {
     if path.exists() {
         let _ = fs::remove_dir_all(path);
     }
+}
+
+fn wait_for_dev_server(trunk: &mut std::process::Child, timeout: Duration) -> Result<bool, Box<dyn Error>> {
+    let deadline = Instant::now() + timeout;
+
+    while Instant::now() < deadline {
+        if dev_server_ready() {
+            return Ok(true);
+        }
+
+        if let Some(status) = trunk.try_wait()? {
+            return Ok(status.success());
+        }
+
+        thread::sleep(Duration::from_millis(300));
+    }
+
+    Ok(false)
+}
+
+fn dev_server_ready() -> bool {
+    let Ok(mut stream) = TcpStream::connect(DEV_SERVER_ADDR) else {
+        return false;
+    };
+
+    let request = concat!(
+        "GET / HTTP/1.1\r\n",
+        "Host: localhost\r\n",
+        "Connection: close\r\n\r\n"
+    );
+
+    if stream.write_all(request.as_bytes()).is_err() {
+        return false;
+    }
+
+    let mut response = String::new();
+    if stream.read_to_string(&mut response).is_err() {
+        return false;
+    }
+
+    response.starts_with("HTTP/1.1 200") || response.starts_with("HTTP/1.0 200")
 }
