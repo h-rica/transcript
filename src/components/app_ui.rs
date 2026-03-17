@@ -2,38 +2,6 @@ use leptos::{ev::MouseEvent, prelude::*};
 use singlestage::{Badge, Card, CardContent, CardDescription, CardHeader, CardTitle};
 
 #[component]
-pub fn AppPageHeader(
-    eyebrow: &'static str,
-    title: &'static str,
-    #[prop(optional, into)] description: MaybeProp<String>,
-    children: Children,
-) -> impl IntoView {
-    view! {
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div class="space-y-2">
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                    {eyebrow}
-                </p>
-                <div class="space-y-1">
-                    <h1 class="text-3xl font-semibold tracking-tight text-slate-950 dark:text-slate-50">
-                        {title}
-                    </h1>
-                    <Show when=move || description.get().is_some()>
-                        <p class="max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-                            {move || description.get().unwrap_or_default()}
-                        </p>
-                    </Show>
-                </div>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-3">
-                {children()}
-            </div>
-        </div>
-    }
-}
-
-#[component]
 pub fn ActionBar(children: Children) -> impl IntoView {
     view! {
         <div class="flex flex-wrap items-center gap-3">

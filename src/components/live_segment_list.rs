@@ -1,7 +1,5 @@
 use leptos::{html, prelude::*};
-use singlestage::{
-    Card, CardContent, Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle,
-};
+use singlestage::{Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle};
 
 use crate::{
     components::app_ui::SpeakerPill,
@@ -42,11 +40,11 @@ pub fn LiveSegmentList(
                             <EmptyHeader>
                                 <EmptyTitle>"No live segments yet"</EmptyTitle>
                                 <EmptyDescription>
-                                    "Transcript segments will stream here as the Rust backend emits progress events."
+                                    "Transcript segments will stream here once the local decoder starts emitting them."
                                 </EmptyDescription>
                             </EmptyHeader>
                             <EmptyContent>
-                                <p class="text-sm text-slate-500 dark:text-slate-400">
+                                <p class="text-sm text-zinc-500">
                                     "Start a run from the preview screen to populate this feed."
                                 </p>
                             </EmptyContent>
@@ -68,8 +66,8 @@ pub fn LiveSegmentList(
                             );
 
                             view! {
-                                <Card>
-                                    <CardContent class="flex gap-4 p-4">
+                                <div class="rounded-2xl border border-zinc-800 bg-[#141414] p-4">
+                                    <div class="flex gap-4">
                                         <div
                                             class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold"
                                             style=format!("background:{}; color:{};", background, foreground)
@@ -79,19 +77,17 @@ pub fn LiveSegmentList(
                                         <div class="min-w-0 flex-1 space-y-3">
                                             <div class="flex flex-wrap items-center justify-between gap-2">
                                                 <SpeakerPill name=segment.speaker.clone()/>
-                                                <span class="text-xs text-slate-500 dark:text-slate-400">
-                                                    {time_range}
-                                                </span>
+                                                <span class="text-xs text-zinc-500">{time_range}</span>
                                             </div>
-                                            <p class="text-sm leading-6 text-slate-700 dark:text-slate-200">
+                                            <p class="text-sm leading-7 text-zinc-100">
                                                 {segment.text.clone()}
                                                 <Show when=move || show_cursor>
-                                                    <span class="ml-1 inline-block h-4 w-1 animate-pulse rounded bg-slate-900 align-middle dark:bg-slate-100"></span>
+                                                    <span class="ml-1 inline-block h-4 w-1 animate-pulse rounded bg-zinc-100 align-middle"></span>
                                                 </Show>
                                             </p>
                                         </div>
-                                    </CardContent>
-                                </Card>
+                                    </div>
+                                </div>
                             }
                         })
                         .collect_view()

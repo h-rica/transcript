@@ -1,63 +1,11 @@
 use crate::state::app_state::HardwareInfo;
 
-#[derive(Clone, Copy)]
-pub struct UiModel {
-    pub id: &'static str,
-    pub name: &'static str,
-    pub description: &'static str,
-    pub tier: &'static str,
-    pub diarization: bool,
-    pub ready: bool,
-    pub rtfx: f32,
-    pub size_mb: u32,
-}
-
-pub const AVAILABLE_MODELS: [UiModel; 3] = [
-    UiModel {
-        id: "whisper-tiny",
-        name: "Whisper Tiny",
-        description: "Bundled fallback for Phase 1. Fastest path to the first local transcript.",
-        tier: "entry",
-        diarization: false,
-        ready: true,
-        rtfx: 1.65,
-        size_mb: 75,
-    },
-    UiModel {
-        id: "whisper-medium",
-        name: "Whisper Medium",
-        description: "Higher accuracy with a larger local footprint. Visible before download wiring is complete.",
-        tier: "balanced",
-        diarization: false,
-        ready: false,
-        rtfx: 0.72,
-        size_mb: 1420,
-    },
-    UiModel {
-        id: "whisper-large-v3",
-        name: "Whisper Large v3",
-        description: "Best quality and speaker support, but too heavy for the current Phase 1 bundle.",
-        tier: "heavy",
-        diarization: true,
-        ready: false,
-        rtfx: 0.45,
-        size_mb: 3000,
-    },
-];
-
-pub fn selected_model(model_id: &str) -> UiModel {
-    AVAILABLE_MODELS
-        .iter()
-        .find(|model| model.id == model_id)
-        .copied()
-        .unwrap_or(AVAILABLE_MODELS[0])
-}
-
 pub fn hardware_warning(hardware: Option<HardwareInfo>, model_tier: &str) -> Option<String> {
     let hardware = hardware?;
-    if model_tier == "heavy" && hardware.ram_gb < 16 {
+    let risky = matches!(model_tier, "standard" | "balanced" | "heavy") && hardware.ram_gb < 16;
+    if risky {
         Some(format!(
-            "{} GB RAM on {} is unlikely to handle the heavy profile comfortably in Phase 1.",
+            "{} GB RAM on {} may force slower local runs for this profile.",
             hardware.ram_gb, hardware.cpu_name
         ))
     } else {

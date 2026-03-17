@@ -1,35 +1,43 @@
 use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
-use singlestage::{
-    Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, Field, Input, Label,
-};
+use singlestage::{Badge, Card, CardContent, Field, Input, Label};
 
 use crate::{
-    components::{app_ui::AppPageHeader, drop_zone::DropZone, sidebar::Sidebar},
+    components::{
+        drop_zone::DropZone,
+        workspace::{WorkspaceHeader, WorkspaceRoute, WorkspaceShell},
+    },
     state::app_state::{SelectedFile, use_app_shell_state},
 };
 
-const RECENTS: [(&str, &str, &str, &str, &str); 3] = [
+const RECENTS: [(&str, &str, &str, &str, &str); 4] = [
     (
         "interview_2026_03.mp3",
         "24:38",
-        "FR",
+        "French",
         "2 speakers",
-        "Whisper Tiny",
+        "VibeVoice",
     ),
     (
         "meeting_recording.wav",
         "1:02:14",
-        "EN",
-        "1 speaker",
-        "Whisper Tiny",
+        "English",
+        "4 speakers",
+        "Whisper",
     ),
     (
         "podcast_ep42.m4a",
         "48:22",
-        "FR",
+        "French",
         "2 speakers",
-        "Whisper Medium",
+        "VibeVoice",
+    ),
+    (
+        "conf_keynote.mp3",
+        "58:10",
+        "English",
+        "1 speaker",
+        "Whisper",
     ),
 ];
 
@@ -45,64 +53,57 @@ pub fn IntakeScreen() -> impl IntoView {
     });
 
     view! {
-        <div class="flex h-screen w-full bg-slate-50 dark:bg-slate-950">
-            <Sidebar/>
+        <WorkspaceShell route=WorkspaceRoute::Home>
+            <WorkspaceHeader
+                title="Transcribe"
+                subtitle="Drop a file to start a local transcription run or reopen a recent transcript from this device."
+            >
+                <Field class="min-w-72">
+                    <Label>"Search transcripts"</Label>
+                    <Input input_type="search" placeholder="Search transcripts..." value=search/>
+                </Field>
+            </WorkspaceHeader>
 
-            <main class="min-w-0 flex-1 overflow-auto px-6 py-6 lg:px-8">
-                <div class="mx-auto flex max-w-6xl flex-col gap-6">
-                    <AppPageHeader
-                        eyebrow="Intake"
-                        title="Drop a file and prepare a local transcript"
-                        description="The active flow now uses the Single Stage component layer for the search field, surfaces, and metadata cards."
-                    >
-                        <Field class="min-w-72">
-                            <Label>"Search recents"</Label>
-                            <Input input_type="search" placeholder="Search recent transcripts" value=search/>
-                        </Field>
-                    </AppPageHeader>
+            <DropZone on_file=on_file/>
 
-                    <DropZone on_file=on_file/>
+            <Card class="border-zinc-800 bg-[#191919] text-zinc-50">
+                <CardContent class="p-0">
+                    <div class="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
+                        <div>
+                            <p class="text-sm font-semibold text-zinc-50">"Recent"</p>
+                            <p class="text-sm text-zinc-400">"Recent local transcripts available on this machine."</p>
+                        </div>
+                        <a class="text-sm text-zinc-400 transition hover:text-zinc-100" href="/transcript/current">
+                            "View all"
+                        </a>
+                    </div>
 
-                    <Card>
-                        <CardHeader>
-                            <Badge variant="secondary">"Recent transcripts"</Badge>
-                            <CardTitle>"Local transcript history"</CardTitle>
-                            <CardDescription>
-                                "The library view is still placeholder data in Phase 1, but the screen now uses shared UI primitives instead of page-local button styling."
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent class="grid gap-3">
-                            {move || {
-                                let query = search.get().to_lowercase();
-                                RECENTS
-                                    .iter()
-                                    .filter(|(name, ..)| query.is_empty() || name.to_lowercase().contains(&query))
-                                    .map(|(name, duration, language, speakers, model)| {
-                                        view! {
-                                            <Card>
-                                                <CardContent class="flex flex-wrap items-center justify-between gap-4 p-4">
-                                                    <div class="space-y-1">
-                                                        <p class="text-sm font-semibold text-slate-950 dark:text-slate-50">
-                                                            {(*name).to_string()}
-                                                        </p>
-                                                        <p class="text-sm text-slate-600 dark:text-slate-300">
-                                                            {format!("{} | {} | {}", duration, speakers, model)}
-                                                        </p>
-                                                    </div>
-                                                    <div class="flex flex-wrap items-center gap-2">
-                                                        <Badge variant="outline">{(*language).to_string()}</Badge>
-                                                        <Badge variant="secondary">"Open soon"</Badge>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        }
-                                    })
-                                    .collect_view()
-                            }}
-                        </CardContent>
-                    </Card>
-                </div>
-            </main>
-        </div>
+                    <div class="divide-y divide-zinc-800">
+                        {move || {
+                            let query = search.get().to_lowercase();
+                            RECENTS
+                                .iter()
+                                .filter(|(name, ..)| query.is_empty() || name.to_lowercase().contains(&query))
+                                .map(|(name, duration, language, speakers, model)| {
+                                    let href = "/transcript/current";
+                                    view! {
+                                        <a class="flex flex-wrap items-center gap-4 px-5 py-4 transition hover:bg-zinc-900/70" href=href>
+                                            <div class="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-xs font-semibold text-zinc-300">
+                                                "TR"
+                                            </div>
+                                            <div class="min-w-0 flex-1 space-y-1">
+                                                <p class="truncate text-sm font-semibold text-zinc-50">{(*name).to_string()}</p>
+                                                <p class="text-sm text-zinc-400">{format!("{} · {} · {}", duration, language, speakers)}</p>
+                                            </div>
+                                            <Badge variant="outline">{(*model).to_string()}</Badge>
+                                        </a>
+                                    }
+                                })
+                                .collect_view()
+                        }}
+                    </div>
+                </CardContent>
+            </Card>
+        </WorkspaceShell>
     }
 }
