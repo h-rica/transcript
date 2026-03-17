@@ -26,6 +26,7 @@ pub fn PreviewScreen() -> impl IntoView {
     let navigate = use_navigate();
     let is_loading = RwSignal::new(false);
     let is_starting = RwSignal::new(false);
+    let model_panel_open = RwSignal::new(false);
 
     let preview_session = session.clone();
     Effect::new(move |_| {
@@ -100,10 +101,10 @@ pub fn PreviewScreen() -> impl IntoView {
         <WorkspaceShell route=WorkspaceRoute::Preview>
             <WorkspaceHeader
                 title="File Preview"
-                subtitle="Validate the file, confirm the language, and choose the local model before starting the run."
+                subtitle="Validate the file, choose language and model, then start a local transcription run."
             >
                 <A
-                    attr:class="inline-flex h-9 items-center rounded-lg border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-[#17181b] dark:hover:text-zinc-100"
+                    attr:class="inline-flex h-8 items-center rounded-lg border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-[#17181b] dark:hover:text-zinc-100"
                     href="/"
                 >
                     "Back"
@@ -113,13 +114,13 @@ pub fn PreviewScreen() -> impl IntoView {
             {move || {
                 let Some(file) = shell.selected_file.get() else {
                     return view! {
-                        <div class="rounded-[1.5rem] border border-dashed border-zinc-300 bg-zinc-100/80 px-6 py-12 text-center dark:border-zinc-800 dark:bg-[#121316]">
+                        <div class="rounded-[1.15rem] border border-dashed border-zinc-300 bg-zinc-100/80 px-6 py-12 text-center dark:border-zinc-800 dark:bg-[#121316]">
                             <p class="text-base font-medium text-zinc-950 dark:text-zinc-100">"No file selected"</p>
                             <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-500">
-                                "Return to Home and drop an audio file before opening the preview flow."
+                                "Return to Home and drop an audio file before opening preview."
                             </p>
                             <A
-                                attr:class="mt-5 inline-flex h-9 items-center rounded-lg border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-[#17181b] dark:hover:text-zinc-100"
+                                attr:class="mt-5 inline-flex h-8 items-center rounded-lg border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-[#17181b] dark:hover:text-zinc-100"
                                 href="/"
                             >
                                 "Return home"
@@ -138,112 +139,139 @@ pub fn PreviewScreen() -> impl IntoView {
                     .map(|info| format_hms(info.duration_s / model.rtfx.max(0.1)))
                     .unwrap_or_else(|| "--".into());
                 let model_ready = model_is_ready(&model);
+                let language_shell = shell.clone();
+                let model_list_shell = shell.clone();
+                let model_detail = format!(
+                    "{} MB · {}{}",
+                    model.size_mb,
+                    if model.diarization {
+                        "Diarization · "
+                    } else {
+                        ""
+                    },
+                    model.languages.join(" + ")
+                );
 
                 view! {
-                    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-                        <div class="space-y-5">
-                            <section class="rounded-[1.5rem] border border-zinc-200 bg-white px-5 py-5 dark:border-zinc-900 dark:bg-[#141519]">
-                                <div class="flex items-start gap-4">
-                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100 text-xs font-semibold text-zinc-600 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-400">
-                                        "FI"
-                                    </div>
-                                    <div class="min-w-0">
-                                        <p class="truncate text-sm font-medium text-zinc-950 dark:text-zinc-100">{file.name.clone()}</p>
-                                        <p class="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-500">{file.path.clone()}</p>
-                                    </div>
+                    <div class="mx-auto w-full max-w-3xl space-y-4">
+                        <section class="rounded-[1.15rem] border border-zinc-200 bg-zinc-100/70 p-4 dark:border-zinc-900 dark:bg-[#15171b]">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-11 w-11 items-center justify-center rounded-lg border border-zinc-200 bg-white text-xs font-semibold text-zinc-500 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-400">
+                                    "FI"
                                 </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-sm font-medium text-zinc-950 dark:text-zinc-100">{file.name.clone()}</p>
+                                    <p class="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-500">
+                                        {audio_info
+                                            .as_ref()
+                                            .map(|_| "Added just now".to_string())
+                                            .unwrap_or_else(|| file.path.clone())}
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
 
-                                <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                                    <MetricTile
-                                        label="Duration"
-                                        value=audio_info
-                                            .as_ref()
-                                            .map(|info| format_hms(info.duration_s))
-                                            .unwrap_or_else(|| if is_loading.get() { "Loading...".into() } else { "--".into() })
-                                    />
-                                    <MetricTile
-                                        label="Size"
-                                        value=audio_info
-                                            .as_ref()
-                                            .map(|info| format_bytes(info.size_bytes))
-                                            .unwrap_or_else(|| "--".into())
-                                    />
-                                    <MetricTile
-                                        label="Format"
-                                        value=audio_info
-                                            .as_ref()
-                                            .map(|info| info.format.to_uppercase())
-                                            .unwrap_or_else(|| "--".into())
-                                    />
-                                    <MetricTile
-                                        label="Bitrate"
-                                        value=audio_info
-                                            .as_ref()
-                                            .and_then(|info| info.bitrate_kbps)
-                                            .map(|value| format!("{value} kbps"))
-                                            .unwrap_or_else(|| "--".into())
-                                    />
-                                </div>
-                            </section>
-
-                            <section class="rounded-[1.5rem] border border-zinc-200 bg-white px-5 py-5 dark:border-zinc-900 dark:bg-[#141519]">
-                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">"Language"</p>
-                                <div class="mt-3 flex flex-wrap gap-2">
-                                    {[("fr", "French"), ("en", "English"), ("auto", "Auto")]
-                                        .into_iter()
-                                        .map(|(value, label)| {
-                                            let shell_state = shell.clone();
-                                            view! {
-                                                <button
-                                                    class=move || {
-                                                        if shell_state.selected_language.get() == value {
-                                                            "rounded-lg border border-zinc-300 bg-zinc-950 px-3 py-2 text-sm font-medium text-white dark:border-zinc-700 dark:bg-zinc-100 dark:text-zinc-950"
-                                                        } else {
-                                                            "rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-300 dark:hover:bg-[#17181b]"
-                                                        }
-                                                    }
-                                                    on:click=move |_| shell.selected_language.set(value.into())
-                                                    type="button"
-                                                >
-                                                    {label}
-                                                </button>
-                                            }
-                                        })
-                                        .collect_view()}
-                                </div>
-                            </section>
-
-                            <section class="rounded-[1.5rem] border border-zinc-200 bg-white px-5 py-5 dark:border-zinc-900 dark:bg-[#141519]">
-                                <div class="grid gap-4 md:grid-cols-3">
-                                    <MetricTile label="Estimated time" value=runtime_estimate.clone()/>
-                                    <MetricTile label="Realtime factor" value=format!("{:.2}x", model.rtfx)/>
-                                    <MetricTile label="Bundle size" value=format!("{} MB", model.size_mb)/>
-                                </div>
-                            </section>
+                        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                            <MetricTile
+                                label="Duration"
+                                value=audio_info
+                                    .as_ref()
+                                    .map(|info| format_hms(info.duration_s))
+                                    .unwrap_or_else(|| if is_loading.get() { "Loading...".into() } else { "--".into() })
+                            />
+                            <MetricTile
+                                label="Size"
+                                value=audio_info
+                                    .as_ref()
+                                    .map(|info| format_bytes(info.size_bytes))
+                                    .unwrap_or_else(|| "--".into())
+                            />
+                            <MetricTile
+                                label="Format"
+                                value=audio_info
+                                    .as_ref()
+                                    .map(|info| info.format.to_uppercase())
+                                    .unwrap_or_else(|| "--".into())
+                            />
+                            <MetricTile
+                                label="Bitrate"
+                                value=audio_info
+                                    .as_ref()
+                                    .and_then(|info| info.bitrate_kbps)
+                                    .map(|value| format!("{value} kbps"))
+                                    .unwrap_or_else(|| "--".into())
+                            />
                         </div>
 
-                        <aside class="space-y-4">
-                            <section class="rounded-[1.5rem] border border-zinc-200 bg-white px-5 py-5 dark:border-zinc-900 dark:bg-[#141519]">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <StatusTag label=model.tier.clone()/>
-                                    <StatusTag label=if model_ready { "Ready".into() } else { "Install required".into() }/>
-                                    <Show when=move || model.diarization>
-                                        <StatusTag label="Diarization".into()/>
-                                    </Show>
-                                </div>
-                                <h2 class="mt-4 text-lg font-semibold text-zinc-950 dark:text-zinc-100">{model.name.clone()}</h2>
-                                <p class="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">{model.description.clone()}</p>
+                        <section>
+                            <p class="mb-2 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">"Language"</p>
+                            <div class="flex flex-wrap gap-2 rounded-[1.15rem] border border-zinc-200 bg-white p-3 dark:border-zinc-900 dark:bg-[#141519]">
+                                {["fr", "en", "auto"]
+                                    .into_iter()
+                                    .map(|value| {
+                                        let label = match value {
+                                            "fr" => "French",
+                                            "en" => "English",
+                                            _ => "Auto",
+                                        };
+                                        let shell_state = language_shell.clone();
+                                        let shell_action = language_shell.clone();
+                                        view! {
+                                            <button
+                                                class=move || {
+                                                    if shell_state.selected_language.get() == value {
+                                                        "rounded-lg border border-zinc-300 bg-zinc-950 px-3 py-2 text-sm font-medium text-white dark:border-zinc-700 dark:bg-zinc-100 dark:text-zinc-950"
+                                                    } else {
+                                                        "rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-300 dark:hover:bg-[#17181b]"
+                                                    }
+                                                }
+                                                on:click=move |_| shell_action.selected_language.set(value.into())
+                                                type="button"
+                                            >
+                                                {label}
+                                            </button>
+                                        }
+                                    })
+                                    .collect_view()}
+                            </div>
+                        </section>
 
-                                <div class="mt-5 space-y-2">
-                                    {models().into_iter().map(|item| {
-                                        let selected = item.id == shell.selected_model.get();
-                                        let shell_state = shell.clone();
+                        <section class="rounded-[1.15rem] border border-zinc-200 bg-white p-3 dark:border-zinc-900 dark:bg-[#141519]">
+                            <button
+                                class="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-1 text-left"
+                                on:click=move |_| model_panel_open.update(|open| *open = !*open)
+                                type="button"
+                            >
+                                <div>
+                                    <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">{model.name.clone()}</p>
+                                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-500">{model_detail}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Show when=move || model.diarization>
+                                        <span class="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200">
+                                            "Diarization"
+                                        </span>
+                                    </Show>
+                                    <span class="text-xs text-zinc-500 dark:text-zinc-500">
+                                        {move || if model_panel_open.get() { "Hide" } else { "Choose" }}
+                                    </span>
+                                </div>
+                            </button>
+
+                            <Show when=move || model_panel_open.get()>
+                                <div class="mt-3 space-y-2 border-t border-zinc-200 pt-3 dark:border-zinc-900">
+                                    {let selected_model_id = model_list_shell.selected_model.get();
+                                    let shell_for_rows = model_list_shell.clone();
+                                    models().into_iter().map(|item| {
+                                        let selected = item.id == selected_model_id;
+                                        let shell_state = shell_for_rows.clone();
+                                        let ready = model_is_ready(&item);
                                         view! {
                                             <button
                                                 class=if selected {
-                                                    "w-full rounded-xl border border-zinc-300 bg-zinc-100 px-4 py-3 text-left dark:border-zinc-700 dark:bg-[#17181b]"
+                                                    "flex w-full items-center gap-3 rounded-lg border border-zinc-300 bg-zinc-100 px-3 py-3 text-left dark:border-zinc-700 dark:bg-[#17181b]"
                                                 } else {
-                                                    "w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-left transition hover:bg-zinc-100 dark:border-zinc-800 dark:bg-[#101114] dark:hover:bg-[#17181b]"
+                                                    "flex w-full items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-3 text-left transition hover:bg-zinc-100 dark:border-zinc-800 dark:bg-[#101114] dark:hover:bg-[#17181b]"
                                                 }
                                                 on:click={
                                                     let id = item.id.clone();
@@ -251,53 +279,83 @@ pub fn PreviewScreen() -> impl IntoView {
                                                 }
                                                 type="button"
                                             >
-                                                <div class="flex items-start justify-between gap-4">
-                                                    <div>
-                                                        <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">{item.name}</p>
-                                                        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-500">{format!("{} / {} MB / {}", item.source, item.size_mb, item.status)}</p>
-                                                    </div>
-                                                    <span class="text-[11px] text-zinc-500 dark:text-zinc-500">{item.languages.join(" + ")}</span>
+                                                <div class=if selected {
+                                                    "relative h-4 w-4 rounded-full border border-zinc-950 dark:border-zinc-100"
+                                                } else {
+                                                    "relative h-4 w-4 rounded-full border border-zinc-300 dark:border-zinc-700"
+                                                }>
+                                                    <Show when=move || selected>
+                                                        <span class="absolute left-[3px] top-[3px] block h-2 w-2 rounded-full bg-zinc-950 dark:bg-zinc-100"></span>
+                                                    </Show>
                                                 </div>
+                                                <div class="min-w-0 flex-1">
+                                                    <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">{item.name.clone()}</p>
+                                                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+                                                        {format!("{} MB · {} · {}", item.size_mb, item.source, item.languages.join(" + "))}
+                                                    </p>
+                                                </div>
+                                                <span class=if ready {
+                                                    "inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200"
+                                                } else {
+                                                    "inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
+                                                }>
+                                                    {if ready { "Ready" } else { "Missing" }}
+                                                </span>
                                             </button>
                                         }
                                     }).collect_view()}
                                 </div>
+                            </Show>
+                        </section>
 
-                                <Show when=move || has_warning>
-                                    <div class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
-                                        {warning_text.clone()}
-                                    </div>
-                                </Show>
+                        <Show when=move || has_warning>
+                            <div class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                                {warning_text.clone()}
+                            </div>
+                        </Show>
 
-                                <Show when=move || session.error.get().is_some()>
-                                    <div class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200">
-                                        {move || session.error.get().unwrap_or_default()}
-                                    </div>
-                                </Show>
+                        <Show when=move || !model_ready>
+                            <div class="space-y-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-900/60 dark:bg-amber-950/20">
+                                <p class="text-sm text-amber-800 dark:text-amber-200">
+                                    "This model is not downloaded locally yet. Choose an installed model or wait for model downloads to be implemented in the desktop runtime."
+                                </p>
+                                <button
+                                    class="inline-flex h-9 items-center rounded-lg border border-amber-300 px-3 text-sm font-medium text-amber-700 opacity-70 dark:border-amber-800 dark:text-amber-200"
+                                    disabled=true
+                                    type="button"
+                                >
+                                    {format!("Download unavailable — {} MB", model.size_mb)}
+                                </button>
+                            </div>
+                        </Show>
 
-                                <div class="mt-5 space-y-3">
-                                    <Show when=move || !model_ready>
-                                        <p class="text-sm text-zinc-500 dark:text-zinc-500">
-                                            "This model is not installed locally yet, so transcription cannot start from this profile."
-                                        </p>
-                                    </Show>
-                                    <button
-                                        class=move || {
-                                            if model_ready && !is_starting.get() {
-                                                "inline-flex h-10 w-full items-center justify-center rounded-xl bg-zinc-950 px-4 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
-                                            } else {
-                                                "inline-flex h-10 w-full items-center justify-center rounded-xl bg-zinc-300 px-4 text-sm font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"
-                                            }
-                                        }
-                                        disabled=move || !model_ready || is_starting.get()
-                                        on:click=move |_| start_flow.run(())
-                                        type="button"
-                                    >
-                                        {move || if is_starting.get() { "Starting..." } else { "Start transcription" }}
-                                    </button>
-                                </div>
-                            </section>
-                        </aside>
+                        <Show when=move || session.error.get().is_some()>
+                            <div class="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200">
+                                {move || session.error.get().unwrap_or_default()}
+                            </div>
+                        </Show>
+
+                        <div class="flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-100/80 px-4 py-3 dark:border-zinc-800 dark:bg-[#101114]">
+                            <span class="text-xs text-zinc-500 dark:text-zinc-500">"Estimate"</span>
+                            <span class="text-sm font-medium text-zinc-950 dark:text-zinc-100">
+                                {format!("~{} at {:.2}x RTFx on CPU", runtime_estimate, model.rtfx)}
+                            </span>
+                        </div>
+
+                        <button
+                            class=move || {
+                                if model_ready && !is_starting.get() {
+                                    "inline-flex h-10 w-full items-center justify-center rounded-[0.9rem] bg-zinc-950 px-4 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                                } else {
+                                    "inline-flex h-10 w-full items-center justify-center rounded-[0.9rem] bg-zinc-300 px-4 text-sm font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"
+                                }
+                            }
+                            disabled=move || !model_ready || is_starting.get()
+                            on:click=move |_| start_flow.run(())
+                            type="button"
+                        >
+                            {move || if is_starting.get() { "Starting..." } else { "Start transcription" }}
+                        </button>
                     </div>
                 }
                 .into_any()
@@ -309,18 +367,9 @@ pub fn PreviewScreen() -> impl IntoView {
 #[component]
 fn MetricTile(label: &'static str, value: String) -> impl IntoView {
     view! {
-        <div class="rounded-xl border border-zinc-200 bg-zinc-100/80 px-4 py-4 dark:border-zinc-800 dark:bg-[#101114]">
-            <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">{label}</p>
-            <p class="mt-2 text-sm font-semibold text-zinc-950 dark:text-zinc-100">{value}</p>
+        <div class="rounded-xl border border-zinc-200 bg-zinc-100/80 px-4 py-3 text-center dark:border-zinc-800 dark:bg-[#101114]">
+            <p class="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">{label}</p>
+            <p class="mt-2 text-base font-semibold text-zinc-950 dark:text-zinc-100">{value}</p>
         </div>
-    }
-}
-
-#[component]
-fn StatusTag(label: String) -> impl IntoView {
-    view! {
-        <span class="inline-flex items-center rounded-full border border-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
-            {label}
-        </span>
     }
 }
