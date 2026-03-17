@@ -17,10 +17,7 @@ pub struct WhisperModel {
 
 impl WhisperModel {
     pub fn load(model_path: &str) -> Result<Self> {
-        let ctx = WhisperContext::new_with_params(
-            model_path,
-            WhisperContextParameters::default(),
-        )
+        let ctx = WhisperContext::new_with_params(model_path, WhisperContextParameters::default())
             .with_context(|| format!("Failed to load Whisper model: {model_path}"))?;
 
         Ok(Self { ctx })
@@ -35,7 +32,9 @@ impl WhisperModel {
             audio.samples
         };
 
-        let mut state = self.ctx.create_state()
+        let mut state = self
+            .ctx
+            .create_state()
             .context("Failed to create Whisper state")?;
 
         let mut params = FullParams::new(SamplingStrategy::Greedy { best_of: 1 });
@@ -45,7 +44,8 @@ impl WhisperModel {
         params.set_print_timestamps(false);
         params.set_n_threads(4);
 
-        state.full(params, &samples)
+        state
+            .full(params, &samples)
             .context("Whisper inference failed")?;
 
         // as_iter() is the idiomatic API in whisper-rs 0.16

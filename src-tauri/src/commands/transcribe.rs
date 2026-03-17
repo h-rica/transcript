@@ -39,23 +39,29 @@ pub async fn transcribe_file(
     let start = std::time::Instant::now();
 
     // Emit: starting
-    app.emit("transcription_progress", ProgressPayload {
-        percent: 0.0,
-        elapsed_s: 0,
-    }).map_err(|e| e.to_string())?;
+    app.emit(
+        "transcription_progress",
+        ProgressPayload {
+            percent: 0.0,
+            elapsed_s: 0,
+        },
+    )
+        .map_err(|e| e.to_string())?;
 
     // Resolve model path
-    let model_path = resolve_model_path(&model_id)
-        .map_err(|e| e.to_string())?;
+    let model_path = resolve_model_path(&model_id).map_err(|e| e.to_string())?;
 
     // Load model
-    let model = WhisperModel::load(&model_path)
-        .map_err(|e| e.to_string())?;
+    let model = WhisperModel::load(&model_path).map_err(|e| e.to_string())?;
 
-    app.emit("transcription_progress", ProgressPayload {
-        percent: 0.05,
-        elapsed_s: start.elapsed().as_secs() as u32,
-    }).map_err(|e| e.to_string())?;
+    app.emit(
+        "transcription_progress",
+        ProgressPayload {
+            percent: 0.05,
+            elapsed_s: start.elapsed().as_secs() as u32,
+        },
+    )
+        .map_err(|e| e.to_string())?;
 
     // Run transcription
     let segments = model
@@ -71,28 +77,40 @@ pub async fn transcribe_file(
         word_count += seg.text.split_whitespace().count() as u32;
         speaker_set.insert(seg.speaker.clone());
 
-        app.emit("transcription_segment", SegmentPayload {
-            speaker: seg.speaker.clone(),
-            text: seg.text.clone(),
-            start_s: seg.start_s,
-            end_s: seg.end_s,
-            language: seg.language.clone(),
-        }).map_err(|e| e.to_string())?;
+        app.emit(
+            "transcription_segment",
+            SegmentPayload {
+                speaker: seg.speaker.clone(),
+                text: seg.text.clone(),
+                start_s: seg.start_s,
+                end_s: seg.end_s,
+                language: seg.language.clone(),
+            },
+        )
+            .map_err(|e| e.to_string())?;
 
-        app.emit("transcription_progress", ProgressPayload {
-            percent: 0.05 + (i as f32 + 1.0) / total * 0.95,
-            elapsed_s: start.elapsed().as_secs() as u32,
-        }).map_err(|e| e.to_string())?;
+        app.emit(
+            "transcription_progress",
+            ProgressPayload {
+                percent: 0.05 + (i as f32 + 1.0) / total * 0.95,
+                elapsed_s: start.elapsed().as_secs() as u32,
+            },
+        )
+            .map_err(|e| e.to_string())?;
     }
 
     // Emit: complete
-    app.emit("transcription_complete", CompletePayload {
-        segments: segments.len() as u32,
-        speakers: speaker_set.len() as u32,
-        words: word_count,
-        language: language.clone(),
-        elapsed_s: start.elapsed().as_secs() as u32,
-    }).map_err(|e| e.to_string())?;
+    app.emit(
+        "transcription_complete",
+        CompletePayload {
+            segments: segments.len() as u32,
+            speakers: speaker_set.len() as u32,
+            words: word_count,
+            language: language.clone(),
+            elapsed_s: start.elapsed().as_secs() as u32,
+        },
+    )
+        .map_err(|e| e.to_string())?;
 
     Ok(())
 }
