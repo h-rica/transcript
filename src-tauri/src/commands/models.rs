@@ -14,10 +14,7 @@ pub struct ModelInfo {
 }
 
 #[tauri::command]
-pub async fn download_model(
-    _app: AppHandle,
-    _model_id: String,
-) -> Result<(), String> {
+pub async fn download_model(_app: AppHandle, _model_id: String) -> Result<(), String> {
     Ok(())
 }
 

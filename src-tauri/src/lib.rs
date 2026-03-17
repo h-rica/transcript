@@ -6,8 +6,8 @@ mod models;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-        tauri::Builder::default()
-            .invoke_handler(tauri::generate_handler![
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
             commands::transcribe::transcribe_file,
             commands::transcribe::cancel_transcription,
             commands::audio::get_audio_info,
@@ -19,6 +19,6 @@ pub fn run() {
             commands::settings::get_settings,
             commands::settings::save_settings,
         ])
-            .run(tauri::generate_context!())
-            .expect("error while running tauri application");
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
