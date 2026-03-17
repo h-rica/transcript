@@ -1,8 +1,6 @@
 use leptos::{html, prelude::*};
-use singlestage::{Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle};
 
 use crate::{
-    components::app_ui::SpeakerPill,
     features::shared::{format_mm_ss, speaker_initial, speaker_palette},
     state::app_state::TranscriptSegment,
 };
@@ -31,24 +29,17 @@ pub fn LiveSegmentList(
     });
 
     view! {
-        <div node_ref=list_ref class="flex max-h-[28rem] flex-col gap-4 overflow-auto pr-2">
+        <div node_ref=list_ref class="flex max-h-[28rem] flex-col gap-3 overflow-auto pr-1">
             {move || {
                 let items = segments.get();
                 if items.is_empty() {
                     view! {
-                        <Empty>
-                            <EmptyHeader>
-                                <EmptyTitle>"No live segments yet"</EmptyTitle>
-                                <EmptyDescription>
-                                    "Transcript segments will stream here once the local decoder starts emitting them."
-                                </EmptyDescription>
-                            </EmptyHeader>
-                            <EmptyContent>
-                                <p class="text-sm text-zinc-500">
-                                    "Start a run from the preview screen to populate this feed."
-                                </p>
-                            </EmptyContent>
-                        </Empty>
+                        <div class="rounded-2xl border border-dashed border-zinc-300 bg-zinc-100/80 px-5 py-8 text-center dark:border-zinc-800 dark:bg-[#121316]">
+                            <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">"No live segments yet"</p>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-500">
+                                "Segments will appear here once the model starts emitting transcript text."
+                            </p>
+                        </div>
                     }
                     .into_any()
                 } else {
@@ -66,23 +57,25 @@ pub fn LiveSegmentList(
                             );
 
                             view! {
-                                <div class="rounded-2xl border border-zinc-800 bg-[#141414] p-4">
+                                <div class="rounded-2xl border border-zinc-200 bg-white px-4 py-4 dark:border-zinc-900 dark:bg-[#141519]">
                                     <div class="flex gap-4">
                                         <div
-                                            class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                                            class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold"
                                             style=format!("background:{}; color:{};", background, foreground)
                                         >
                                             {speaker_initial(&segment.speaker)}
                                         </div>
-                                        <div class="min-w-0 flex-1 space-y-3">
+                                        <div class="min-w-0 flex-1 space-y-2">
                                             <div class="flex flex-wrap items-center justify-between gap-2">
-                                                <SpeakerPill name=segment.speaker.clone()/>
-                                                <span class="text-xs text-zinc-500">{time_range}</span>
+                                                <span class="inline-flex items-center rounded-full border border-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-700 dark:border-zinc-700 dark:text-zinc-300">
+                                                    {segment.speaker.clone()}
+                                                </span>
+                                                <span class="text-[11px] text-zinc-500 dark:text-zinc-500">{time_range}</span>
                                             </div>
-                                            <p class="text-sm leading-7 text-zinc-100">
+                                            <p class="text-sm leading-7 text-zinc-900 dark:text-zinc-100">
                                                 {segment.text.clone()}
                                                 <Show when=move || show_cursor>
-                                                    <span class="ml-1 inline-block h-4 w-1 animate-pulse rounded bg-zinc-100 align-middle"></span>
+                                                    <span class="ml-1 inline-block h-4 w-1 animate-pulse rounded bg-zinc-900 align-middle dark:bg-zinc-100"></span>
                                                 </Show>
                                             </p>
                                         </div>

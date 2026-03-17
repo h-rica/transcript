@@ -1,18 +1,10 @@
 mod service;
 
 use leptos::{prelude::*, task::spawn_local};
-use leptos_router::hooks::use_navigate;
-use singlestage::{
-    Alert, AlertDescription, AlertTitle, Badge, Card, CardContent, CardDescription, CardFooter,
-    CardHeader, CardTitle, Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle, Field,
-    Label, Select, SelectContent, SelectItem, Separator,
-};
+use leptos_router::{components::A, hooks::use_navigate};
 
 use crate::{
-    components::{
-        app_ui::{ActionBar, ActionButton, LinkButton, MetricCard, StatusBadge},
-        workspace::{WorkspaceHeader, WorkspaceRoute, WorkspaceShell},
-    },
+    components::workspace::{WorkspaceHeader, WorkspaceRoute, WorkspaceShell},
     features::{
         shared::{format_bytes, format_hms, hardware_warning},
         workspace_data::{fallback_models, model_is_ready, selected_model},
@@ -110,218 +102,225 @@ pub fn PreviewScreen() -> impl IntoView {
                 title="File Preview"
                 subtitle="Validate the file, confirm the language, and choose the local model before starting the run."
             >
-                <LinkButton href="/">"Back"</LinkButton>
+                <A
+                    attr:class="inline-flex h-9 items-center rounded-lg border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-[#17181b] dark:hover:text-zinc-100"
+                    href="/"
+                >
+                    "Back"
+                </A>
             </WorkspaceHeader>
 
             {move || {
                 let Some(file) = shell.selected_file.get() else {
                     return view! {
-                        <Empty>
-                            <EmptyHeader>
-                                <EmptyTitle>"No file selected"</EmptyTitle>
-                                <EmptyDescription>
-                                    "Return to Home and drop an audio file before opening the preview flow."
-                                </EmptyDescription>
-                            </EmptyHeader>
-                            <EmptyContent>
-                                <LinkButton href="/">"Return home"</LinkButton>
-                            </EmptyContent>
-                        </Empty>
+                        <div class="rounded-[1.5rem] border border-dashed border-zinc-300 bg-zinc-100/80 px-6 py-12 text-center dark:border-zinc-800 dark:bg-[#121316]">
+                            <p class="text-base font-medium text-zinc-950 dark:text-zinc-100">"No file selected"</p>
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-500">
+                                "Return to Home and drop an audio file before opening the preview flow."
+                            </p>
+                            <A
+                                attr:class="mt-5 inline-flex h-9 items-center rounded-lg border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-[#17181b] dark:hover:text-zinc-100"
+                                href="/"
+                            >
+                                "Return home"
+                            </A>
+                        </div>
                     }
                     .into_any();
                 };
 
                 let model = current_model();
                 let warning_text = hardware_warning(shell.hardware_info.get(), &model.tier).unwrap_or_default();
-                let runtime_estimate = session
-                    .audio_info
-                    .get()
+                let has_warning = !warning_text.is_empty();
+                let audio_info = session.audio_info.get();
+                let runtime_estimate = audio_info
+                    .as_ref()
                     .map(|info| format_hms(info.duration_s / model.rtfx.max(0.1)))
                     .unwrap_or_else(|| "--".into());
-                let ready_variant = Signal::derive(move || {
-                    if model_is_ready(&current_model()) {
-                        "secondary".to_string()
-                    } else {
-                        "outline".to_string()
-                    }
-                });
+                let model_ready = model_is_ready(&model);
 
                 view! {
-                    <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-                        <Card class="border-zinc-800 bg-[#191919] text-zinc-50">
-                            <CardHeader>
-                                <ActionBar>
-                                    <StatusBadge value=Signal::derive(move || shell.selected_language.get().to_uppercase()) variant="secondary"/>
-                                    <StatusBadge value=Signal::derive(move || shell.selected_model.get()) variant="outline"/>
-                                </ActionBar>
-                                <CardTitle>{file.name.clone()}</CardTitle>
-                                <CardDescription>{file.path.clone()}</CardDescription>
-                            </CardHeader>
-                            <CardContent class="space-y-6">
-                                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                                    <MetricCard
+                    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+                        <div class="space-y-5">
+                            <section class="rounded-[1.5rem] border border-zinc-200 bg-white px-5 py-5 dark:border-zinc-900 dark:bg-[#141519]">
+                                <div class="flex items-start gap-4">
+                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100 text-xs font-semibold text-zinc-600 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-400">
+                                        "FI"
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-medium text-zinc-950 dark:text-zinc-100">{file.name.clone()}</p>
+                                        <p class="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-500">{file.path.clone()}</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                                    <MetricTile
                                         label="Duration"
-                                        value=Signal::derive(move || {
-                                            session
-                                                .audio_info
-                                                .get()
-                                                .map(|info| format_hms(info.duration_s))
-                                                .unwrap_or_else(|| if is_loading.get() { "Loading...".into() } else { "--".into() })
-                                        })
+                                        value=audio_info
+                                            .as_ref()
+                                            .map(|info| format_hms(info.duration_s))
+                                            .unwrap_or_else(|| if is_loading.get() { "Loading...".into() } else { "--".into() })
                                     />
-                                    <MetricCard
+                                    <MetricTile
                                         label="Size"
-                                        value=Signal::derive(move || {
-                                            session
-                                                .audio_info
-                                                .get()
-                                                .map(|info| format_bytes(info.size_bytes))
-                                                .unwrap_or_else(|| "--".into())
-                                        })
+                                        value=audio_info
+                                            .as_ref()
+                                            .map(|info| format_bytes(info.size_bytes))
+                                            .unwrap_or_else(|| "--".into())
                                     />
-                                    <MetricCard
+                                    <MetricTile
                                         label="Format"
-                                        value=Signal::derive(move || {
-                                            session
-                                                .audio_info
-                                                .get()
-                                                .map(|info| info.format.to_uppercase())
-                                                .unwrap_or_else(|| "--".into())
-                                        })
+                                        value=audio_info
+                                            .as_ref()
+                                            .map(|info| info.format.to_uppercase())
+                                            .unwrap_or_else(|| "--".into())
                                     />
-                                    <MetricCard
+                                    <MetricTile
                                         label="Bitrate"
-                                        value=Signal::derive(move || {
-                                            session
-                                                .audio_info
-                                                .get()
-                                                .and_then(|info| info.bitrate_kbps)
-                                                .map(|value| format!("{value} kbps"))
-                                                .unwrap_or_else(|| "--".into())
-                                        })
+                                        value=audio_info
+                                            .as_ref()
+                                            .and_then(|info| info.bitrate_kbps)
+                                            .map(|value| format!("{value} kbps"))
+                                            .unwrap_or_else(|| "--".into())
                                     />
                                 </div>
+                            </section>
 
-                                <Separator/>
-
-                                <div class="grid gap-4 md:grid-cols-2">
-                                    <Field>
-                                        <Label>"Language"</Label>
-                                        <Select value=shell.selected_language>
-                                            <SelectContent>
-                                                <SelectItem value="fr">"French"</SelectItem>
-                                                <SelectItem value="en">"English"</SelectItem>
-                                                <SelectItem value="auto">"Auto detect"</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </Field>
-
-                                    <Field>
-                                        <Label>"Model"</Label>
-                                        <Select value=shell.selected_model>
-                                            <SelectContent>
-                                                {models().into_iter().map(|item| {
-                                                    let status = match item.status.as_str() {
-                                                        "bundled" => "Bundled",
-                                                        "downloaded" => "Downloaded",
-                                                        _ => "Not installed",
-                                                    };
-                                                    view! {
-                                                        <SelectItem value=item.id.clone()>
-                                                            {format!("{} ({status})", item.name)}
-                                                        </SelectItem>
+                            <section class="rounded-[1.5rem] border border-zinc-200 bg-white px-5 py-5 dark:border-zinc-900 dark:bg-[#141519]">
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">"Language"</p>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    {[("fr", "French"), ("en", "English"), ("auto", "Auto")]
+                                        .into_iter()
+                                        .map(|(value, label)| {
+                                            let shell_state = shell.clone();
+                                            view! {
+                                                <button
+                                                    class=move || {
+                                                        if shell_state.selected_language.get() == value {
+                                                            "rounded-lg border border-zinc-300 bg-zinc-950 px-3 py-2 text-sm font-medium text-white dark:border-zinc-700 dark:bg-zinc-100 dark:text-zinc-950"
+                                                        } else {
+                                                            "rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-300 dark:hover:bg-[#17181b]"
+                                                        }
                                                     }
-                                                }).collect_view()}
-                                            </SelectContent>
-                                        </Select>
-                                    </Field>
+                                                    on:click=move |_| shell.selected_language.set(value.into())
+                                                    type="button"
+                                                >
+                                                    {label}
+                                                </button>
+                                            }
+                                        })
+                                        .collect_view()}
                                 </div>
+                            </section>
 
+                            <section class="rounded-[1.5rem] border border-zinc-200 bg-white px-5 py-5 dark:border-zinc-900 dark:bg-[#141519]">
                                 <div class="grid gap-4 md:grid-cols-3">
-                                    <MetricCard label="Estimated runtime" value=Signal::derive(move || runtime_estimate.clone())/>
-                                    <MetricCard label="Realtime factor" value=Signal::derive(move || format!("{:.2}x", current_model().rtfx))/>
-                                    <MetricCard label="Bundle size" value=Signal::derive(move || format!("{} MB", current_model().size_mb))/>
+                                    <MetricTile label="Estimated time" value=runtime_estimate.clone()/>
+                                    <MetricTile label="Realtime factor" value=format!("{:.2}x", model.rtfx)/>
+                                    <MetricTile label="Bundle size" value=format!("{} MB", model.size_mb)/>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            </section>
+                        </div>
 
-                        <Card class="border-zinc-800 bg-[#191919] text-zinc-50">
-                            <CardHeader>
-                                <Badge variant="secondary">"Selected profile"</Badge>
-                                <CardTitle>{move || current_model().name}</CardTitle>
-                                <CardDescription>{move || current_model().description}</CardDescription>
-                            </CardHeader>
-                            <CardContent class="space-y-4">
-                                <div class="flex flex-wrap gap-2">
-                                    <Badge variant="outline">{move || current_model().tier}</Badge>
-                                    <Badge variant=ready_variant>
-                                        {move || if model_is_ready(&current_model()) { "Ready" } else { "Install required" }}
-                                    </Badge>
-                                    <Show when=move || current_model().diarization>
-                                        <Badge variant="outline">"Speaker labels"</Badge>
+                        <aside class="space-y-4">
+                            <section class="rounded-[1.5rem] border border-zinc-200 bg-white px-5 py-5 dark:border-zinc-900 dark:bg-[#141519]">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <StatusTag label=model.tier.clone()/>
+                                    <StatusTag label=if model_ready { "Ready".into() } else { "Install required".into() }/>
+                                    <Show when=move || model.diarization>
+                                        <StatusTag label="Diarization".into()/>
                                     </Show>
                                 </div>
+                                <h2 class="mt-4 text-lg font-semibold text-zinc-950 dark:text-zinc-100">{model.name.clone()}</h2>
+                                <p class="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">{model.description.clone()}</p>
 
-                                <div class="grid gap-3">
+                                <div class="mt-5 space-y-2">
                                     {models().into_iter().map(|item| {
-                                        let class_name = Signal::derive(move || {
-                                            if item.id == current_model().id {
-                                                "border-zinc-500 bg-zinc-900/80".to_string()
-                                            } else {
-                                                "border-zinc-800 bg-[#141414]".to_string()
-                                            }
-                                        });
+                                        let selected = item.id == shell.selected_model.get();
+                                        let shell_state = shell.clone();
                                         view! {
-                                            <Card class=class_name>
-                                                <CardContent class="flex items-start justify-between gap-4 p-4">
-                                                    <div class="space-y-1">
-                                                        <p class="text-sm font-semibold text-zinc-50">{item.name}</p>
-                                                        <p class="text-sm text-zinc-400">{item.description}</p>
-                                                        <p class="text-xs uppercase tracking-[0.18em] text-zinc-500">
-                                                            {format!("{} | {}", item.source, item.status)}
-                                                        </p>
+                                            <button
+                                                class=if selected {
+                                                    "w-full rounded-xl border border-zinc-300 bg-zinc-100 px-4 py-3 text-left dark:border-zinc-700 dark:bg-[#17181b]"
+                                                } else {
+                                                    "w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-left transition hover:bg-zinc-100 dark:border-zinc-800 dark:bg-[#101114] dark:hover:bg-[#17181b]"
+                                                }
+                                                on:click={
+                                                    let id = item.id.clone();
+                                                    move |_| shell_state.selected_model.set(id.clone())
+                                                }
+                                                type="button"
+                                            >
+                                                <div class="flex items-start justify-between gap-4">
+                                                    <div>
+                                                        <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">{item.name}</p>
+                                                        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-500">{format!("{} / {} MB / {}", item.source, item.size_mb, item.status)}</p>
                                                     </div>
-                                                    <Badge variant="outline">{format!("{} MB", item.size_mb)}</Badge>
-                                                </CardContent>
-                                            </Card>
+                                                    <span class="text-[11px] text-zinc-500 dark:text-zinc-500">{item.languages.join(" + ")}</span>
+                                                </div>
+                                            </button>
                                         }
                                     }).collect_view()}
                                 </div>
 
-                                {if warning_text.is_empty() {
-                                    ().into_any()
-                                } else {
-                                    view! {
-                                        <Alert>
-                                            <AlertTitle>"Hardware warning"</AlertTitle>
-                                            <AlertDescription>{warning_text.clone()}</AlertDescription>
-                                        </Alert>
-                                    }
-                                    .into_any()
-                                }}
+                                <Show when=move || has_warning>
+                                    <div class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                                        {warning_text.clone()}
+                                    </div>
+                                </Show>
 
                                 <Show when=move || session.error.get().is_some()>
-                                    <Alert variant="destructive">
-                                        <AlertTitle>"Audio preview failed"</AlertTitle>
-                                        <AlertDescription>
-                                            {move || session.error.get().unwrap_or_default()}
-                                        </AlertDescription>
-                                    </Alert>
+                                    <div class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200">
+                                        {move || session.error.get().unwrap_or_default()}
+                                    </div>
                                 </Show>
-                            </CardContent>
-                            <CardFooter class="justify-end">
-                                <ActionButton
-                                    disabled=Signal::derive(move || !model_is_ready(&current_model()) || is_starting.get())
-                                    on_click=start_flow
-                                >
-                                    {move || if is_starting.get() { "Starting..." } else { "Start transcription" }}
-                                </ActionButton>
-                            </CardFooter>
-                        </Card>
+
+                                <div class="mt-5 space-y-3">
+                                    <Show when=move || !model_ready>
+                                        <p class="text-sm text-zinc-500 dark:text-zinc-500">
+                                            "This model is not installed locally yet, so transcription cannot start from this profile."
+                                        </p>
+                                    </Show>
+                                    <button
+                                        class=move || {
+                                            if model_ready && !is_starting.get() {
+                                                "inline-flex h-10 w-full items-center justify-center rounded-xl bg-zinc-950 px-4 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                                            } else {
+                                                "inline-flex h-10 w-full items-center justify-center rounded-xl bg-zinc-300 px-4 text-sm font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"
+                                            }
+                                        }
+                                        disabled=move || !model_ready || is_starting.get()
+                                        on:click=move |_| start_flow.run(())
+                                        type="button"
+                                    >
+                                        {move || if is_starting.get() { "Starting..." } else { "Start transcription" }}
+                                    </button>
+                                </div>
+                            </section>
+                        </aside>
                     </div>
                 }
                 .into_any()
             }}
         </WorkspaceShell>
+    }
+}
+
+#[component]
+fn MetricTile(label: &'static str, value: String) -> impl IntoView {
+    view! {
+        <div class="rounded-xl border border-zinc-200 bg-zinc-100/80 px-4 py-4 dark:border-zinc-800 dark:bg-[#101114]">
+            <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">{label}</p>
+            <p class="mt-2 text-sm font-semibold text-zinc-950 dark:text-zinc-100">{value}</p>
+        </div>
+    }
+}
+
+#[component]
+fn StatusTag(label: String) -> impl IntoView {
+    view! {
+        <span class="inline-flex items-center rounded-full border border-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
+            {label}
+        </span>
     }
 }
