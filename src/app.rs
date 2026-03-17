@@ -50,6 +50,9 @@ fn AppShell() -> impl IntoView {
         let transcript_view = transcript_view.clone();
         spawn_local(async move {
             if let Ok(settings) = load_settings().await {
+                shell_for_settings
+                    .theme_preference
+                    .set(settings.theme_preference);
                 if let Some(default_model) = settings.default_model.clone() {
                     shell_for_settings.selected_model.set(default_model.clone());
                     shell_for_settings.active_model.set(default_model);

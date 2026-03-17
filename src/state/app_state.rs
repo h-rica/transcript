@@ -2,7 +2,8 @@ use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum ThemePreference {
     #[default]
     Auto,
@@ -11,10 +12,12 @@ pub enum ThemePreference {
 }
 
 impl ThemePreference {
+    #[cfg(test)]
     pub fn toggle(self) -> Self {
         match self {
-            Self::Auto | Self::Light => Self::Dark,
-            Self::Dark => Self::Light,
+            Self::Auto => Self::Light,
+            Self::Light => Self::Dark,
+            Self::Dark => Self::Auto,
         }
     }
 }
@@ -49,7 +52,9 @@ pub struct WorkspaceModel {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Settings {
+    pub theme_preference: ThemePreference,
     pub default_language: String,
     pub default_model: Option<String>,
     pub cpu_threads: u32,
@@ -65,6 +70,7 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
+            theme_preference: ThemePreference::Auto,
             default_language: "fr".into(),
             default_model: Some("whisper-tiny".into()),
             cpu_threads: 4,
@@ -205,7 +211,7 @@ pub fn provide_app_state() {
         .unwrap_or_else(|| "whisper-tiny".into());
 
     provide_context(AppShellState {
-        theme_preference: RwSignal::new(ThemePreference::Dark),
+        theme_preference: RwSignal::new(settings.theme_preference),
         selected_file: RwSignal::new(None),
         selected_model: RwSignal::new(default_model.clone()),
         selected_language: RwSignal::new(settings.default_language.clone()),
@@ -261,4 +267,32 @@ pub fn reset_transcript_view(view: &TranscriptViewState, export_format: String) 
     view.export_open.set(false);
     view.export_format.set(export_format);
     view.export_message.set(None);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn theme_preference_toggle_cycles_all_modes() {
+        assert_eq!(ThemePreference::Auto.toggle(), ThemePreference::Light);
+        assert_eq!(ThemePreference::Light.toggle(), ThemePreference::Dark);
+        assert_eq!(ThemePreference::Dark.toggle(), ThemePreference::Auto);
+    }
+
+    #[test]
+    fn theme_preference_serializes_as_lowercase() {
+        let settings = Settings::default();
+        let serialized = toml::to_string(&settings).unwrap();
+        assert!(serialized.contains("theme_preference = \"auto\""));
+        let loaded: Settings = toml::from_str(&serialized).unwrap();
+        assert_eq!(loaded.theme_preference, ThemePreference::Auto);
+    }
+
+    #[test]
+    fn default_settings_include_theme_preference() {
+        let settings = Settings::default();
+        assert_eq!(settings.theme_preference, ThemePreference::Auto);
+        assert_eq!(settings.default_model.as_deref(), Some("whisper-tiny"));
+    }
 }

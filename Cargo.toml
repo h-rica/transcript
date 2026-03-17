@@ -23,3 +23,6 @@ web-sys = { version = "0.3.81", features = ["Clipboard", "Document", "Element", 
 
 # Error handling
 anyhow = "1.0.102"
+
+[dev-dependencies]
+toml = "0.8"
