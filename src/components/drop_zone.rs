@@ -3,7 +3,6 @@ use std::path::Path;
 use futures::StreamExt;
 use leptos::{html, prelude::*, task::spawn_local};
 use leptos_use::{UseDropZoneReturn, use_drop_zone};
-use singlestage::Badge;
 use wasm_bindgen::JsCast;
 
 use crate::state::app_state::SelectedFile;
@@ -101,33 +100,61 @@ pub fn DropZone(on_file: Callback<SelectedFile>) -> impl IntoView {
 
             <div class=move || {
                 if is_active.get() {
-                    "rounded-[1.75rem] border border-zinc-500 bg-zinc-900/80 px-6 py-10 shadow-2xl shadow-black/30"
+                    "rounded-[1.5rem] border border-zinc-500 bg-[#15171b] px-6 py-6 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]"
                 } else {
-                    "rounded-[1.75rem] border border-dashed border-zinc-700 bg-[#171717] px-6 py-10"
+                    "rounded-[1.5rem] border border-dashed border-zinc-800 bg-[#121316] px-6 py-6"
                 }
             }>
-                <div class="mx-auto flex max-w-3xl flex-col items-center text-center">
-                    <div class="flex h-14 w-14 items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-900 text-sm font-semibold text-zinc-200">
-                        "UP"
+                <div class="mx-auto flex h-[170px] max-w-3xl flex-col items-center justify-center text-center">
+                    <div class=move || {
+                        if is_active.get() {
+                            "flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-950"
+                        } else {
+                            "flex h-10 w-10 items-center justify-center rounded-xl bg-[#1a1c20] text-zinc-300"
+                        }
+                    }>
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 20 20">
+                            <path
+                                d="M10 13V4M10 4L7 7M10 4L13 7"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.4"
+                            />
+                            <path
+                                d="M3 14V16C3 16.6 3.4 17 4 17H16C16.6 17 17 16.6 17 16V14"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-width="1.4"
+                            />
+                        </svg>
                     </div>
-                    <h2 class="mt-5 text-2xl font-semibold tracking-tight text-zinc-50">
-                        "Drop audio file here"
+
+                    <h2 class="mt-4 text-[1.35rem] font-semibold tracking-tight text-zinc-50">
+                        {move || if is_active.get() {
+                            "Release to transcribe"
+                        } else {
+                            "Drop audio file here"
+                        }}
                     </h2>
-                    <p class="mt-2 text-sm text-zinc-400">
-                        "MP3 · WAV · M4A · optimized for offline desktop transcription"
+
+                    <p class="mt-1 text-sm text-zinc-500">
+                        {move || if is_active.get() {
+                            "MP3 / WAV / M4A detected"
+                        } else {
+                            "MP3 / WAV / M4A"
+                        }}
                     </p>
-                    <button
-                        class="mt-6 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-zinc-600 hover:bg-zinc-800"
-                        on:click=open_picker
-                        type="button"
-                    >
-                        "Browse files"
-                    </button>
-                    <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
-                        <Badge variant="outline">"Local only"</Badge>
-                        <Badge variant="outline">"Speaker labels when supported"</Badge>
-                        <Badge variant="outline">"No cloud upload"</Badge>
-                    </div>
+
+                    <Show when=move || !is_active.get()>
+                        <button
+                            class="mt-5 h-8 rounded-lg border border-zinc-800 bg-[#1a1c20] px-4 text-sm font-medium text-zinc-100 transition hover:border-zinc-700 hover:bg-[#1f2126]"
+                            on:click=open_picker
+                            type="button"
+                        >
+                            "Browse files"
+                        </button>
+                    </Show>
                 </div>
             </div>
         </div>

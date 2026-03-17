@@ -1,6 +1,5 @@
 use leptos::prelude::*;
-use leptos_router::hooks::use_navigate;
-use singlestage::{Badge, Card, CardContent, Field, Input, Label};
+use leptos_router::{components::A, hooks::use_navigate};
 
 use crate::{
     components::{
@@ -10,34 +9,38 @@ use crate::{
     state::app_state::{SelectedFile, use_app_shell_state},
 };
 
-const RECENTS: [(&str, &str, &str, &str, &str); 4] = [
+const RECENTS: [(&str, &str, &str, &str, &str, &str); 4] = [
     (
         "interview_2026_03.mp3",
         "24:38",
-        "French",
+        "FR",
         "2 speakers",
         "VibeVoice",
+        "3h ago",
     ),
     (
         "meeting_recording.wav",
         "1:02:14",
-        "English",
+        "EN",
         "4 speakers",
         "Whisper",
+        "Yesterday",
     ),
     (
         "podcast_ep42.m4a",
         "48:22",
-        "French",
+        "FR",
         "2 speakers",
         "VibeVoice",
+        "2 days ago",
     ),
     (
         "conf_keynote.mp3",
         "58:10",
-        "English",
+        "EN",
         "1 speaker",
         "Whisper",
+        "1 week ago",
     ),
 ];
 
@@ -54,56 +57,79 @@ pub fn IntakeScreen() -> impl IntoView {
 
     view! {
         <WorkspaceShell route=WorkspaceRoute::Home>
-            <WorkspaceHeader
-                title="Transcribe"
-                subtitle="Drop a file to start a local transcription run or reopen a recent transcript from this device."
-            >
-                <Field class="min-w-72">
-                    <Label>"Search transcripts"</Label>
-                    <Input input_type="search" placeholder="Search transcripts..." value=search/>
-                </Field>
+            <WorkspaceHeader title="Transcribe">
+                <div class="flex w-full max-w-sm items-center gap-2 rounded-xl border border-zinc-800 bg-[#15171b] px-3 py-2 text-sm text-zinc-400">
+                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 12 12">
+                        <circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1.2"/>
+                        <path d="M8 8L10.5 10.5" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
+                    </svg>
+                    <input
+                        class="w-full border-0 bg-transparent text-sm text-zinc-100 outline-none placeholder:text-zinc-500"
+                        on:input=move |ev| search.set(event_target_value(&ev))
+                        placeholder="Search transcripts..."
+                        prop:value=move || search.get()
+                        type="search"
+                    />
+                </div>
             </WorkspaceHeader>
 
             <DropZone on_file=on_file/>
 
-            <Card class="border-zinc-800 bg-[#191919] text-zinc-50">
-                <CardContent class="p-0">
-                    <div class="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
-                        <div>
-                            <p class="text-sm font-semibold text-zinc-50">"Recent"</p>
-                            <p class="text-sm text-zinc-400">"Recent local transcripts available on this machine."</p>
-                        </div>
-                        <a class="text-sm text-zinc-400 transition hover:text-zinc-100" href="/transcript/current">
-                            "View all"
-                        </a>
+            <section class="overflow-hidden rounded-[1.25rem] border border-zinc-900 bg-[#141519]">
+                <div class="flex items-center justify-between border-b border-zinc-900 px-5 py-3">
+                    <div>
+                        <p class="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">"Recent"</p>
+                        <p class="mt-1 text-sm text-zinc-400">"Open a previous transcript from local history."</p>
                     </div>
+                    <A
+                        attr:class="text-sm text-zinc-500 transition hover:text-zinc-100"
+                        href="/transcript/current"
+                    >
+                        "View all"
+                    </A>
+                </div>
 
-                    <div class="divide-y divide-zinc-800">
-                        {move || {
-                            let query = search.get().to_lowercase();
-                            RECENTS
-                                .iter()
-                                .filter(|(name, ..)| query.is_empty() || name.to_lowercase().contains(&query))
-                                .map(|(name, duration, language, speakers, model)| {
-                                    let href = "/transcript/current";
-                                    view! {
-                                        <a class="flex flex-wrap items-center gap-4 px-5 py-4 transition hover:bg-zinc-900/70" href=href>
-                                            <div class="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-xs font-semibold text-zinc-300">
-                                                "TR"
+                <div class="divide-y divide-zinc-900">
+                    {move || {
+                        let query = search.get().to_lowercase();
+                        RECENTS
+                            .iter()
+                            .filter(|(name, ..)| query.is_empty() || name.to_lowercase().contains(&query))
+                            .map(|(name, duration, language, speakers, model, age)| {
+                                let href = "/transcript/current";
+                                let badge_class = if *model == "VibeVoice" {
+                                    "inline-flex items-center rounded-md bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-200"
+                                } else {
+                                    "inline-flex items-center rounded-md bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-300"
+                                };
+                                view! {
+                                    <A
+                                        attr:class="group flex items-center gap-4 px-5 py-4 transition hover:bg-[#181a1f]"
+                                        href=href
+                                    >
+                                        <div class="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-800 bg-[#101114] text-[11px] font-semibold text-zinc-400">
+                                            "TR"
+                                        </div>
+
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex min-w-0 items-center gap-2">
+                                                <p class="truncate text-sm font-medium text-zinc-100">{(*name).to_string()}</p>
+                                                <span class=badge_class>{(*model).to_string()}</span>
                                             </div>
-                                            <div class="min-w-0 flex-1 space-y-1">
-                                                <p class="truncate text-sm font-semibold text-zinc-50">{(*name).to_string()}</p>
-                                                <p class="text-sm text-zinc-400">{format!("{} · {} · {}", duration, language, speakers)}</p>
-                                            </div>
-                                            <Badge variant="outline">{(*model).to_string()}</Badge>
-                                        </a>
-                                    }
-                                })
-                                .collect_view()
-                        }}
-                    </div>
-                </CardContent>
-            </Card>
+                                            <p class="mt-1 text-xs text-zinc-500">
+                                                {format!("{} / {} / {}", duration, language, speakers)}
+                                            </p>
+                                        </div>
+
+                                        <div class="hidden text-xs text-zinc-500 sm:block">{(*age).to_string()}</div>
+                                        <div class="text-sm text-zinc-700 transition group-hover:text-zinc-300">">"</div>
+                                    </A>
+                                }
+                            })
+                            .collect_view()
+                    }}
+                </div>
+            </section>
         </WorkspaceShell>
     }
 }
