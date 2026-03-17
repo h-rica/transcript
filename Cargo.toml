@@ -8,7 +8,6 @@ edition = "2024"
 leptos = { version = "0.8.17", features = ["csr"] }
 leptos_router = "0.8.12"
 leptos-use = "0.18.3"
-leptos_darkmode = "0.3"
 singlestage = "0.4"
 
 # Tauri bridge — via wasm-bindgen direct (tauri-sys not on crates.io)
