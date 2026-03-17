@@ -5,13 +5,13 @@ use leptos_router::{
 };
 use singlestage::{Mode, ThemeProvider, ThemeProviderContext};
 
+use crate::features::workspace_data::{load_hardware_info, load_settings, load_workspace_models};
 use crate::pages::{
     file_preview::FilePreviewPage, home::HomePage, model_manager::ModelManagerPage,
     settings::SettingsPage, transcript_view::TranscriptViewPage, transcription::TranscriptionPage,
 };
 use crate::state::app_state::{
-    HardwareInfo, Settings, ThemePreference, provide_app_state, use_app_shell_state,
-    use_transcript_view_state,
+    ThemePreference, provide_app_state, use_app_shell_state, use_transcript_view_state,
 };
 
 #[component]
@@ -46,16 +46,10 @@ fn AppShell() -> impl IntoView {
         }
         bootstrapped.set(true);
 
-        if !tauri_sys::core::is_tauri() {
-            return;
-        }
-
         let shell_for_settings = shell.clone();
         let transcript_view = transcript_view.clone();
         spawn_local(async move {
-            if let Ok(settings) =
-                tauri_sys::core::invoke_result::<Settings, String>("get_settings", &()).await
-            {
+            if let Ok(settings) = load_settings().await {
                 if let Some(default_model) = settings.default_model.clone() {
                     shell_for_settings.selected_model.set(default_model.clone());
                     shell_for_settings.active_model.set(default_model);
@@ -72,33 +66,35 @@ fn AppShell() -> impl IntoView {
 
         let shell_for_hardware = shell.clone();
         spawn_local(async move {
-            let fallback = HardwareInfo {
-                ram_gb: 8,
-                cpu_name: "Unknown CPU".into(),
-                gpu_vram_gb: None,
-                tier: "balanced".into(),
-            };
+            if let Ok(info) = load_hardware_info().await {
+                shell_for_hardware.hardware_info.set(Some(info));
+            }
+        });
 
-            let info =
-                tauri_sys::core::invoke_result::<HardwareInfo, String>("get_hardware_info", &())
-                    .await
-                    .unwrap_or(fallback);
-            shell_for_hardware.hardware_info.set(Some(info));
+        let shell_for_models = shell.clone();
+        spawn_local(async move {
+            if let Ok(models) = load_workspace_models().await {
+                let selected_id = shell_for_models.selected_model.get_untracked();
+                let has_selected = models.iter().any(|model| model.id == selected_id);
+                if !has_selected && let Some(first) = models.first() {
+                    shell_for_models.selected_model.set(first.id.clone());
+                    shell_for_models.active_model.set(first.id.clone());
+                }
+                shell_for_models.available_models.set(models);
+            }
         });
     });
 
     view! {
         <Router>
-            <div class="min-h-screen bg-slate-50 text-slate-950 transition-colors dark:bg-slate-950 dark:text-slate-50">
-                <Routes fallback=|| view! { <p class="p-8 text-slate-500">"Page not found"</p> }>
-                    <Route path=path!("/")               view=HomePage/>
-                    <Route path=path!("/preview")        view=FilePreviewPage/>
-                    <Route path=path!("/transcription")  view=TranscriptionPage/>
-                    <Route path=path!("/transcript/:id") view=TranscriptViewPage/>
-                    <Route path=path!("/models")         view=ModelManagerPage/>
-                    <Route path=path!("/settings")       view=SettingsPage/>
-                </Routes>
-            </div>
+            <Routes fallback=|| view! { <p class="p-8 text-zinc-400">"Page not found"</p> }>
+                <Route path=path!("/")               view=HomePage/>
+                <Route path=path!("/preview")        view=FilePreviewPage/>
+                <Route path=path!("/transcription")  view=TranscriptionPage/>
+                <Route path=path!("/transcript/:id") view=TranscriptViewPage/>
+                <Route path=path!("/models")         view=ModelManagerPage/>
+                <Route path=path!("/settings")       view=SettingsPage/>
+            </Routes>
         </Router>
     }
 }

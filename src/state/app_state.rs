@@ -17,14 +17,6 @@ impl ThemePreference {
             Self::Dark => Self::Light,
         }
     }
-
-    pub fn label(self) -> &'static str {
-        match self {
-            Self::Auto => "Auto",
-            Self::Dark => "Dark",
-            Self::Light => "Light",
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -39,6 +31,21 @@ pub struct HardwareInfo {
     pub cpu_name: String,
     pub gpu_vram_gb: Option<u32>,
     pub tier: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct WorkspaceModel {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub size_mb: u32,
+    pub tier: String,
+    pub bundled: bool,
+    pub diarization: bool,
+    pub languages: Vec<String>,
+    pub source: String,
+    pub status: String,
+    pub rtfx: f32,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -166,6 +173,7 @@ pub struct AppShellState {
     pub selected_language: RwSignal<String>,
     pub active_model: RwSignal<String>,
     pub hardware_info: RwSignal<Option<HardwareInfo>>,
+    pub available_models: RwSignal<Vec<WorkspaceModel>>,
     pub settings: RwSignal<Settings>,
 }
 
@@ -197,12 +205,13 @@ pub fn provide_app_state() {
         .unwrap_or_else(|| "whisper-tiny".into());
 
     provide_context(AppShellState {
-        theme_preference: RwSignal::new(ThemePreference::Auto),
+        theme_preference: RwSignal::new(ThemePreference::Dark),
         selected_file: RwSignal::new(None),
         selected_model: RwSignal::new(default_model.clone()),
         selected_language: RwSignal::new(settings.default_language.clone()),
         active_model: RwSignal::new(default_model),
         hardware_info: RwSignal::new(None),
+        available_models: RwSignal::new(Vec::new()),
         settings: RwSignal::new(settings.clone()),
     });
 
