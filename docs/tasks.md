@@ -1,7 +1,7 @@
 # Transcript — Tasks
 
 **Version** : 0.2.0
-**Updated** : March 2026
+**Updated** : 2026-03-17
 
 ---
 
@@ -29,73 +29,81 @@
 **Duration:** 8 weeks
 **Goal:** Working transcription on 3 OS, Whisper Tiny bundled
 
-### Week 1–2 — Project scaffold
+### Sprint 1 — Project scaffold
 
 - [x] GitHub repo created (`h-rica/transcript`)
 - [x] `cargo tauri init` — Tauri v2 + Trunk + Leptos
 - [x] Frontend structure: `src/components`, `src/pages`, `src/state`
 - [x] Backend structure: `src-tauri/src/commands`, `asr`, `audio`, `models`, `export`
 - [x] `src-tauri/Cargo.toml` — ort, symphonia, sysinfo, reqwest, tokio
-- [x] `Cargo.toml` — leptos 0.7, leptos-use, singlestage, tauri-sys
+- [x] `Cargo.toml` — leptos 0.8, leptos-use, singlestage, tauri-sys
 - [x] `index.html` + `Trunk.toml`
-- [x] `src/main.rs` — Leptos 0.7 entry point
+- [x] `src/main.rs` — Leptos 0.8 entry point
 - [x] Add Tailwind CSS + Singlestage UI
 - [x] `justfile` for the main project
 - [x] `models/registry.toml` — model catalog (Whisper Tiny, VibeVoice INT8)
 - [x] Backend stub modules (`mod.rs` for all submodules)
 - [x] `cargo tauri dev` — app window opens
 
-### Week 3–4 — Audio pipeline
+### Sprint 2 — Audio pipeline
 
-- [] `audio/decoder.rs` — Symphonia decode MP3/WAV/M4A → PCM f32 24kHz
-- [] `commands/audio.rs` — `get_audio_info` IPC command
-- [ ] Unit test: decode test files, assert sample rate + duration
-- [ ] whisper.cpp integration via FFI
-    - [ ] Add whisper-rs dependency
-    - [ ] Bundle Whisper Tiny model in installer
-    - [ ] `asr/whisper.rs` — run inference, return Vec<Segment>
-- [ ] `commands/transcribe.rs` — `transcribe_file` + `cancel_transcription`
-- [ ] Tauri event emission: `transcription_progress`, `transcription_segment`, `transcription_complete`
+- [x] `audio/decoder.rs` — Symphonia decode MP3/WAV/M4A → PCM f32 24kHz
+- [x] `commands/audio.rs` — `get_audio_info` IPC command
+- [x] Unit test: decode test files, assert sample rate + duration
+- [x] whisper.cpp integration via FFI
+    - [x] Add whisper-rs dependency
+    - [x] Bundle Whisper Tiny model in installer
+    - [x] `asr/whisper.rs` — run inference, return Vec<Segment>
+- [x] `commands/transcribe.rs` — `transcribe_file` + `cancel_transcription`
+- [x] Tauri event emission: `transcription_progress`, `transcription_segment`, `transcription_complete`
 - [ ] Manual test: transcribe a 5-min MP3, segments appear in logs
 
-### Week 5–6 — ONNX tokenizers integration
+### Sprint 3 — ONNX tokenizers integration
 
-- [ ] Copy validated `.onnx` + `.onnx.data` to `models/` or download from HF
-- [ ] `asr/acoustic.rs` — load `vibevoice_acoustic.onnx`, run inference
-- [ ] `asr/semantic.rs` — load `vibevoice_semantic.onnx`, run inference
-- [ ] `asr/pipeline.rs` — orchestrate acoustic + semantic → segment stream
-- [ ] Wire pipeline into `commands/transcribe.rs`
+- [x] Bundle validated `.onnx` + `.onnx.data` artifacts and resolve them from app resources/app data
+- [x] `asr/acoustic.rs` — load `vibevoice_acoustic.onnx`, run inference
+- [x] `asr/semantic.rs` — load `vibevoice_semantic.onnx`, run inference
+- [x] `asr/pipeline.rs` — orchestrate acoustic + semantic → segment stream (decoder output is still a placeholder segment)
+- [x] Wire pipeline into `commands/transcribe.rs`
 - [ ] Test: RTFx ≥ 1.0 on dev machine
-- [ ] `asr/decoder.rs` — stub for Qwen2.5 (Phase 2 placeholder)
+- [x] `asr/decoder.rs` — stub for Qwen2.5 (Phase 2 placeholder)
 
-### Week 7 — Leptos UI
+### Sprint 4 — Leptos UI
 
-- [ ] `src/app.rs` — Router + context providers (`hardware_info`, `settings`)
-- [ ] `src/pages/home.rs` — DropZone + RecentList
+- [ ] `src/app.rs` — Router + context providers (`hardware_info`, `settings`) (router + app state provider implemented; dedicated hardware/settings providers still pending)
+- [x] `src/pages/home.rs` — DropZone + RecentList
 - [ ] `src/pages/file_preview.rs` — FileInfoCard + ModelSelector + EstimateBox
 - [ ] `src/pages/transcription.rs` — ProgressBar + LiveSegmentList + SpeedMeter
 - [ ] `src/pages/transcript_view.rs` — Tabs (Speakers / Timeline / Raw) + ExportPanel
-- [ ] `src/components/sidebar.rs` — Singlestage Sidebar
-- [ ] `src/components/drop_zone.rs` — leptos-use `use_drop_zone`
+- [ ] `src/components/sidebar.rs` — Singlestage Sidebar (basic sidebar implemented; design-system version still pending)
+- [ ] `src/components/drop_zone.rs` — leptos-use `use_drop_zone` (logic currently lives inline in `src/pages/home.rs`)
 - [ ] `src/components/live_segment_list.rs` — reactive Vec<Segment> + auto-scroll
 - [ ] `src/components/progress_bar.rs` — Singlestage Progress + Tauri event listener
-- [ ] `src/state/app_state.rs` — global signals (hardware_info, settings, active_model)
+- [ ] `src/state/app_state.rs` — global signals (hardware_info, settings, active_model) (`selected_file`, `selected_model`, `hardware_info`, and `active_model` exist; settings state is still missing)
 - [ ] Dark mode via `leptos_darkmode`
 - [ ] End-to-end test: drop file → transcription → view segments
 
-### Week 8 — Export, model download, packaging
+### Sprint 5 - Export, model download, packaging
 
 - [ ] `export/txt.rs` — TXT with optional timestamps + speaker labels
 - [ ] `export/srt.rs` — SRT subtitles
-- [ ] `commands/export.rs` — `export_transcript` + native file picker
+- [ ] `commands/export.rs` — `export_transcript` + native file picker (stub exists)
 - [ ] `models/downloader.rs` — reqwest stream download + SHA256 verification
 - [ ] `models/hardware.rs` — sysinfo tier detection
 - [ ] `models/registry.rs` — load `models/registry.toml`
-- [ ] `commands/models.rs` — `get_models`, `download_model`, `delete_model`
-- [ ] `src/pages/model_manager.rs` — ModelCard + DownloadProgress + StorageBar
-- [ ] `src/pages/settings.rs` — ToggleRow + SelectRow + SettingsStore
+- [ ] `commands/models.rs` — `get_models`, `download_model`, `delete_model` (stubs exist)
+- [ ] `src/pages/model_manager.rs` — ModelCard + DownloadProgress + StorageBar (route exists; page is still placeholder content)
+- [ ] `src/pages/settings.rs` — ToggleRow + SelectRow + SettingsStore (route exists; page is still placeholder content)
 - [ ] `cargo tauri build` — installer on Windows
 - [ ] Installer size check < 50 MB
+
+### Immediate next tasks — 2026-03-17 audit
+
+1. Run a manual 5-minute transcription and confirm segment/progress events in the UI.
+2. Benchmark the ONNX path on the dev machine and record RTFx.
+3. Run an installer/dev build verification to confirm bundled Whisper and ONNX assets resolve correctly outside the repo checkout.
+4. Turn the current UI skeleton into a working flow: extract `drop_zone`, build `file_preview`, and wire `transcription` to Tauri events.
+5. After the first end-to-end flow works, implement hardware detection, model APIs, and TXT/SRT export.
 
 ---
 
