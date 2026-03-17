@@ -39,16 +39,16 @@
 - [x] `Cargo.toml` — leptos 0.7, leptos-use, singlestage, tauri-sys
 - [x] `index.html` + `Trunk.toml`
 - [x] `src/main.rs` — Leptos 0.7 entry point
-- [ ] Add Tailwind CSS + Singlestage UI
-- [ ] `justfile` for the main project
-- [ ] `models/registry.toml` — model catalog (Whisper Tiny, VibeVoice INT8)
-- [ ] Backend stub modules (`mod.rs` for all submodules)
-- [ ] `cargo tauri dev` — app window opens
+- [x] Add Tailwind CSS + Singlestage UI
+- [x] `justfile` for the main project
+- [x] `models/registry.toml` — model catalog (Whisper Tiny, VibeVoice INT8)
+- [x] Backend stub modules (`mod.rs` for all submodules)
+- [x] `cargo tauri dev` — app window opens
 
 ### Week 3–4 — Audio pipeline
 
-- [ ] `audio/decoder.rs` — Symphonia decode MP3/WAV/M4A → PCM f32 24kHz
-- [ ] `commands/audio.rs` — `get_audio_info` IPC command
+- [] `audio/decoder.rs` — Symphonia decode MP3/WAV/M4A → PCM f32 24kHz
+- [] `commands/audio.rs` — `get_audio_info` IPC command
 - [ ] Unit test: decode test files, assert sample rate + duration
 - [ ] whisper.cpp integration via FFI
     - [ ] Add whisper-rs dependency
