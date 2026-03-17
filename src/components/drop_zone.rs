@@ -100,17 +100,17 @@ pub fn DropZone(on_file: Callback<SelectedFile>) -> impl IntoView {
 
             <div class=move || {
                 if is_active.get() {
-                    "rounded-[1.5rem] border border-zinc-500 bg-[#15171b] px-6 py-6 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]"
+                    "rounded-[1.15rem] border border-zinc-950 bg-zinc-100 px-6 py-6 shadow-sm dark:border-zinc-400 dark:bg-[#15171b]"
                 } else {
-                    "rounded-[1.5rem] border border-dashed border-zinc-800 bg-[#121316] px-6 py-6"
+                    "rounded-[1.15rem] border border-dashed border-zinc-300 bg-white px-6 py-6 dark:border-zinc-800 dark:bg-[#121316]"
                 }
             }>
                 <div class="mx-auto flex h-[170px] max-w-3xl flex-col items-center justify-center text-center">
                     <div class=move || {
                         if is_active.get() {
-                            "flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-950"
+                            "flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950"
                         } else {
-                            "flex h-10 w-10 items-center justify-center rounded-xl bg-[#1a1c20] text-zinc-300"
+                            "flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 dark:bg-[#1a1c20] dark:text-zinc-300"
                         }
                     }>
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 20 20">
@@ -130,7 +130,7 @@ pub fn DropZone(on_file: Callback<SelectedFile>) -> impl IntoView {
                         </svg>
                     </div>
 
-                    <h2 class="mt-4 text-[1.35rem] font-semibold tracking-tight text-zinc-50">
+                    <h2 class="mt-4 text-[1.2rem] font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
                         {move || if is_active.get() {
                             "Release to transcribe"
                         } else {
@@ -138,7 +138,7 @@ pub fn DropZone(on_file: Callback<SelectedFile>) -> impl IntoView {
                         }}
                     </h2>
 
-                    <p class="mt-1 text-sm text-zinc-500">
+                    <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
                         {move || if is_active.get() {
                             "MP3 / WAV / M4A detected"
                         } else {
@@ -148,7 +148,7 @@ pub fn DropZone(on_file: Callback<SelectedFile>) -> impl IntoView {
 
                     <Show when=move || !is_active.get()>
                         <button
-                            class="mt-5 h-8 rounded-lg border border-zinc-800 bg-[#1a1c20] px-4 text-sm font-medium text-zinc-100 transition hover:border-zinc-700 hover:bg-[#1f2126]"
+                            class="mt-5 h-8 rounded-lg border border-zinc-200 bg-zinc-100 px-4 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#1a1c20] dark:text-zinc-100 dark:hover:border-zinc-700 dark:hover:bg-[#1f2126]"
                             on:click=open_picker
                             type="button"
                         >

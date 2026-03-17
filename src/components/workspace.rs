@@ -1,8 +1,6 @@
 use leptos::prelude::*;
 use leptos_router::components::A;
 
-use crate::state::app_state::{ThemePreference, use_app_shell_state};
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WorkspaceRoute {
     Home,
@@ -34,7 +32,6 @@ impl WorkspaceRoute {
 
 #[component]
 pub fn WorkspaceShell(route: WorkspaceRoute, children: Children) -> impl IntoView {
-    let shell = use_app_shell_state();
     let active = route.section();
 
     let nav_button = move |section: WorkspaceSection, href: &'static str, label: &'static str| {
@@ -53,41 +50,22 @@ pub fn WorkspaceShell(route: WorkspaceRoute, children: Children) -> impl IntoVie
 
     view! {
         <div class="h-screen overflow-hidden bg-zinc-50 text-zinc-950 dark:bg-[#0f1012] dark:text-zinc-50">
-            <div class="mx-auto flex h-full max-w-[1600px] overflow-hidden">
-                <aside class="flex w-[68px] flex-shrink-0 flex-col items-center border-r border-zinc-200 bg-zinc-100 px-3 py-5 dark:border-zinc-900 dark:bg-[#0a0b0d]">
-                    <div class="flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-xs font-semibold tracking-[0.24em] text-zinc-950 dark:border-zinc-800 dark:bg-[#141519] dark:text-zinc-100">
-                        "TR"
-                    </div>
-
-                    <nav class="mt-6 flex flex-1 flex-col items-center gap-2">
+            <div class="mx-auto flex h-full max-w-[1480px] overflow-hidden">
+                <aside class="flex w-[56px] flex-shrink-0 flex-col items-center border-r border-zinc-200 bg-zinc-100 px-2 py-4 dark:border-zinc-900 dark:bg-[#0b0c0f]">
+                    <div class="flex flex-col items-center gap-2">
                         {nav_button(WorkspaceSection::Home, "/", "Home")}
                         {nav_button(WorkspaceSection::Models, "/models", "Models")}
-                        <div class="my-2 h-px w-6 bg-zinc-200 dark:bg-zinc-800"></div>
+                    </div>
+                    <div class="my-3 h-px w-6 bg-zinc-200 dark:bg-zinc-800"></div>
+                    <div class="mt-auto flex flex-col items-center gap-2">
                         {nav_button(WorkspaceSection::Settings, "/settings", "Settings")}
-                    </nav>
-
-                    <button
-                        class="flex h-11 w-11 items-center justify-center rounded-xl border border-transparent text-zinc-500 transition hover:border-zinc-200 hover:bg-zinc-100 hover:text-zinc-950 dark:hover:border-zinc-800 dark:hover:bg-[#131417] dark:hover:text-zinc-100"
-                        on:click=move |_| {
-                            shell.theme_preference.update(|mode| *mode = mode.toggle());
-                        }
-                        title="Toggle theme"
-                        type="button"
-                    >
-                        <span class="text-[10px] font-semibold tracking-[0.18em]">
-                            {move || match shell.theme_preference.get() {
-                                ThemePreference::Dark => "DK",
-                                ThemePreference::Light => "LT",
-                                ThemePreference::Auto => "AU",
-                            }}
-                        </span>
-                    </button>
+                    </div>
                 </aside>
 
                 <main class="min-h-0 min-w-0 flex-1 overflow-hidden">
                     <div class="h-full overflow-y-auto overscroll-contain">
-                        <div class="px-6 py-6 lg:px-10 lg:py-8">
-                            <div class="mx-auto flex w-full max-w-[1080px] flex-col gap-6">
+                        <div class="px-5 py-5 lg:px-8 lg:py-6">
+                            <div class="mx-auto flex w-full max-w-[980px] flex-col gap-5">
                                 {children()}
                             </div>
                         </div>

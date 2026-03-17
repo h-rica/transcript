@@ -58,13 +58,13 @@ pub fn IntakeScreen() -> impl IntoView {
     view! {
         <WorkspaceShell route=WorkspaceRoute::Home>
             <WorkspaceHeader title="Transcribe">
-                <div class="flex w-full max-w-sm items-center gap-2 rounded-xl border border-zinc-800 bg-[#15171b] px-3 py-2 text-sm text-zinc-400">
+                <div class="flex w-full max-w-sm items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-[#121316] dark:text-zinc-500">
                     <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 12 12">
                         <circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1.2"/>
                         <path d="M8 8L10.5 10.5" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
                     </svg>
                     <input
-                        class="w-full border-0 bg-transparent text-sm text-zinc-100 outline-none placeholder:text-zinc-500"
+                        class="w-full border-0 bg-transparent text-sm text-zinc-900 outline-none placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                         on:input=move |ev| search.set(event_target_value(&ev))
                         placeholder="Search transcripts..."
                         prop:value=move || search.get()
@@ -75,21 +75,21 @@ pub fn IntakeScreen() -> impl IntoView {
 
             <DropZone on_file=on_file/>
 
-            <section class="overflow-hidden rounded-[1.25rem] border border-zinc-900 bg-[#141519]">
-                <div class="flex items-center justify-between border-b border-zinc-900 px-5 py-3">
+            <section class="overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white dark:border-zinc-900 dark:bg-[#141519]">
+                <div class="flex items-center justify-between border-b border-zinc-200 px-5 py-3 dark:border-zinc-900">
                     <div>
                         <p class="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500">"Recent"</p>
-                        <p class="mt-1 text-sm text-zinc-400">"Open a previous transcript from local history."</p>
+                        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">"Open a previous transcript from local history."</p>
                     </div>
                     <A
-                        attr:class="text-sm text-zinc-500 transition hover:text-zinc-100"
+                        attr:class="text-sm text-zinc-500 transition hover:text-zinc-950 dark:hover:text-zinc-100"
                         href="/transcript/current"
                     >
                         "View all"
                     </A>
                 </div>
 
-                <div class="divide-y divide-zinc-900">
+                <div class="divide-y divide-zinc-200 dark:divide-zinc-900">
                     {move || {
                         let query = search.get().to_lowercase();
                         RECENTS
@@ -98,31 +98,31 @@ pub fn IntakeScreen() -> impl IntoView {
                             .map(|(name, duration, language, speakers, model, age)| {
                                 let href = "/transcript/current";
                                 let badge_class = if *model == "VibeVoice" {
-                                    "inline-flex items-center rounded-md bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-200"
+                                    "inline-flex items-center rounded-md bg-sky-100 px-2 py-0.5 text-[10px] font-medium text-sky-700 dark:bg-sky-500/10 dark:text-sky-200"
                                 } else {
-                                    "inline-flex items-center rounded-md bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-300"
+                                    "inline-flex items-center rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300"
                                 };
                                 view! {
                                     <A
-                                        attr:class="group flex items-center gap-4 px-5 py-4 transition hover:bg-[#181a1f]"
+                                        attr:class="group flex items-center gap-4 px-5 py-4 transition hover:bg-zinc-100 dark:hover:bg-[#181a1f]"
                                         href=href
                                     >
-                                        <div class="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-800 bg-[#101114] text-[11px] font-semibold text-zinc-400">
+                                        <div class="flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100 text-[11px] font-semibold text-zinc-500 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-400">
                                             "TR"
                                         </div>
 
                                         <div class="min-w-0 flex-1">
                                             <div class="flex min-w-0 items-center gap-2">
-                                                <p class="truncate text-sm font-medium text-zinc-100">{(*name).to_string()}</p>
+                                                <p class="truncate text-sm font-medium text-zinc-950 dark:text-zinc-100">{(*name).to_string()}</p>
                                                 <span class=badge_class>{(*model).to_string()}</span>
                                             </div>
-                                            <p class="mt-1 text-xs text-zinc-500">
+                                            <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
                                                 {format!("{} / {} / {}", duration, language, speakers)}
                                             </p>
                                         </div>
 
-                                        <div class="hidden text-xs text-zinc-500 sm:block">{(*age).to_string()}</div>
-                                        <div class="text-sm text-zinc-700 transition group-hover:text-zinc-300">">"</div>
+                                        <div class="hidden text-xs text-zinc-500 sm:block dark:text-zinc-500">{(*age).to_string()}</div>
+                                        <div class="text-sm text-zinc-400 transition group-hover:text-zinc-700 dark:text-zinc-700 dark:group-hover:text-zinc-300">">"</div>
                                     </A>
                                 }
                             })
