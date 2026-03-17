@@ -1,168 +1,157 @@
-# Transcript — User Flow
+# Transcript - User Flow
 
-**Version** : 0.2.0
-**Updated** : March 2026
-**Scope** : POC v0.1
-
----
-
-## 1. Happy path — first launch
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  FIRST LAUNCH                                               │
-│                                                             │
-│  App detects hardware tier                                  │
-│       │                                                     │
-│       ▼                                                     │
-│  "Whisper Tiny is bundled and ready."                       │
-│  "Your machine supports VibeVoice INT8 (diarization)."      │
-│  [Download VibeVoice INT8 — 8.5 GB]  [Continue with Tiny]  │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+**Version**: 0.2.0  
+**Updated**: March 2026  
+**Scope**: POC v0.1
 
 ---
 
-## 2. Main flow — transcribe a file
+## 1. Happy path - first launch
+
+```
++-------------------------------------------------------------+
+|                         FIRST LAUNCH                        |
+|                                                             |
+|  App detects hardware tier                                  |
+|       |                                                     |
+|       v                                                     |
+|  "Whisper Tiny is ready to use."                            |
+|  "Your machine can also run VibeVoice INT8 for diarization."|
+|  [Download VibeVoice INT8 - 8.5 GB]  [Continue with Tiny]   |
+|                                                             |
++-------------------------------------------------------------+
+```
+
+This first-launch path should recommend VibeVoice INT8 when hardware allows it, but it should not block the user from starting with Whisper Tiny immediately.
+
+---
+
+## 2. Main flow - transcribe a file
 
 ```
 START
-  │
-  ▼
-┌──────────────────────────────┐
-│  HOME SCREEN                 │
-│                              │
-│  ┌────────────────────────┐  │
-│  │   Drop audio file here │  │
-│  │   or click to browse   │  │
-│  └────────────────────────┘  │
-│                              │
-│  Recent transcripts ▾        │
-└──────────────┬───────────────┘
-               │  File dropped / selected
-               ▼
-┌──────────────────────────────┐
-│  FILE PREVIEW                │
-│                              │
-│  filename.mp3  •  00:24:38   │
-│                              │
-│  Language:  [Auto / FR / EN] │
-│  Model:     [VibeVoice INT8] │  ← hardware-aware suggestion
-│             [Change model ▾] │
-│                              │
-│  [Start Transcription]       │
-└──────────────┬───────────────┘
-               │  User clicks Start
-               ▼
-┌──────────────────────────────┐
-│  TRANSCRIPTION IN PROGRESS   │
-│                              │
-│  ████████████░░░░░░  64%     │
-│  Elapsed: 00:01:23           │
-│  Speed: 1.3× real-time       │
-│                              │
-│  Live segments:              │
-│  ┌────────────────────────┐  │
-│  │ 🔵 Speaker A  00:00:04 │  │
-│  │ "Bonjour, bienvenue..." │  │
-│  │                        │  │
-│  │ 🟠 Speaker B  00:00:18 │  │
-│  │ "Merci de nous..."     │  │
-│  └────────────────────────┘  │
-│                              │
-│  [Cancel]                    │
-└──────────────┬───────────────┘
-               │  Transcription complete
-               ▼
-┌──────────────────────────────┐
-│  TRANSCRIPT VIEW             │
-│                              │
-│  Speakers  Timeline  Raw     │  ← tabs
-│                              │
-│  🔵 Speaker A                │
-│  00:00:04 → 00:00:17         │
-│  "Bonjour, bienvenue à..."   │
-│                              │
-│  🟠 Speaker B                │
-│  00:00:18 → 00:00:31         │
-│  "Merci de nous rejoindre."  │
-│                              │
-│  [Export ▾]  [Copy all]      │
-└──────────────┬───────────────┘
-               │  User clicks Export
-               ▼
-┌──────────────────────────────┐
-│  EXPORT                      │
-│                              │
-│  Format:  ● TXT  ○ SRT       │
-│  Location: ~/Documents/      │
-│                              │
-│  [Save]                      │
-└──────────────────────────────┘
-               │  File saved
-               ▼
-             END
+  |
+  v
++------------------------------+
+| HOME SCREEN                  |
+|                              |
+|  Drop audio file here        |
+|  or click to browse          |
+|                              |
+|  Recent transcripts          |
++--------------+---------------+
+               | file selected
+               v
++------------------------------+
+| FILE PREVIEW                 |
+|                              |
+|  filename.mp3  •  00:24:38   |
+|                              |
+|  Language:  [FR / EN]        |
+|  Model:     [VibeVoice INT8] |
+|             [Change model]   |
+|                              |
+|  [Start Transcription]       |
++--------------+---------------+
+               | user clicks Start
+               v
++------------------------------+
+| TRANSCRIPTION IN PROGRESS    |
+|                              |
+|  Progress 64%                |
+|  Elapsed 00:01:23            |
+|  Speed 1.3x real-time        |
+|                              |
+|  Live segments               |
+|  Speaker A ...               |
+|  Speaker B ...               |
+|                              |
+|  [Cancel]                    |
++--------------+---------------+
+               | transcription complete
+               v
++------------------------------+
+| TRANSCRIPT VIEW              |
+|                              |
+|  Speakers | Timeline | Raw   |
+|                              |
+|  Segment list                |
+|                              |
+|  [Export]  [Copy all]        |
++--------------+---------------+
+               | user clicks Export
+               v
++------------------------------+
+| EXPORT                       |
+|                              |
+|  Format: TXT or SRT          |
+|  Location: ~/Documents/...   |
+|                              |
+|  [Save]                      |
++--------------+---------------+
+               | file saved
+               v
+              END
 ```
 
 ---
 
 ## 3. Model download flow
 
-Triggered from the model selector or the first-launch screen.
+Triggered from first launch, File Preview, or Model Manager.
 
 ```
-[Change model ▾]
-       │
-       ▼
-┌──────────────────────────────────────────────────────┐
-│  MODEL SELECTOR                                      │
-│                                                      │
-│  Recommended for your hardware (32 GB RAM):          │
-│                                                      │
-│  ● VibeVoice INT8    8.5 GB   Diarization ✓         │
-│  ○ Whisper Large v3  3.1 GB   Diarization ✗         │
-│  ○ Whisper Medium    1.5 GB   Diarization ✗         │
-│  ○ Whisper Tiny       150 MB  Bundled ✓ Diarization ✗│
-│                                                      │
-│  [Download VibeVoice INT8]  [Use Whisper Tiny]       │
-└──────────────┬───────────────────────────────────────┘
-               │  User clicks Download
-               ▼
-┌──────────────────────────────┐
-│  DOWNLOADING                 │
-│                              │
-│  VibeVoice INT8              │
-│  ████████░░░░░░░░  4.2/8.5GB │
-│  12.3 MB/s  •  ETA 03:24     │
-│                              │
-│  SHA256 verification... ✓    │
-│                              │
-│  [Cancel]                    │
-└──────────────┬───────────────┘
-               │  Download + verification complete
-               ▼
-         Model ready — return to file preview
+[Change model]
+      |
+      v
++--------------------------------------------------+
+| MODEL SELECTOR                                   |
+|                                                  |
+| Recommended for your hardware:                   |
+|                                                  |
+| • VibeVoice INT8   8.5 GB   Diarization yes      |
+| • Whisper Tiny      150 MB  Bundled              |
+|                                                  |
+| [Download VibeVoice INT8]  [Use Whisper Tiny]    |
++-------------------+------------------------------+
+                    | user clicks Download
+                    v
++------------------------------+
+| DOWNLOADING                  |
+|                              |
+|  VibeVoice INT8              |
+|  4.2 / 8.5 GB                |
+|  12.3 MB/s  ETA 03:24        |
+|                              |
+|  SHA256 verification -> pass |
+|                              |
+|  [Cancel]                    |
++-------------------+----------+
+                    | complete
+                    v
+         Model ready -> return to File Preview
 ```
+
+For v0.1, interrupted downloads may fail and require a restart of the download. Resume support is planned for v0.2, not part of the POC contract.
 
 ---
 
 ## 4. Error states
 
 | State | UI | Action |
-|---|---|---|
-| Unsupported file format | Toast "Format not supported. Use MP3, WAV, or M4A." | — |
-| Not enough RAM for selected model | Warning banner with alternative suggestion | Offer to switch to lighter model |
-| Download interrupted | "Download paused" + [Resume] button | Resumable download |
-| Model file corrupted (SHA256 fail) | "Verification failed" + [Re-download] | Delete + re-download |
-| Transcription failed | Error message + logs accessible | [Retry] button |
+| --- | --- | --- |
+| Unsupported file format | Toast: "Format not supported. Use MP3, WAV, or M4A." | Dismiss |
+| Not enough RAM for selected model | Warning banner with lighter-model suggestion | Offer switch to Whisper Tiny |
+| Download interrupted | Error message + retry action | Restart download |
+| Model file corrupted (SHA256 fail) | "Verification failed" + re-download action | Delete partial files and retry |
+| Transcription failed | Error message + logs accessible | Retry |
 
 ---
 
 ## 5. Screen inventory (POC v0.1)
 
 | Screen | Route | Description |
-|---|---|---|
+| --- | --- | --- |
 | Home | `/` | Drop zone + recent files |
 | File Preview | `/preview` | File info + model/language selection |
 | Transcription | `/transcription` | Live progress + streaming segments |
@@ -175,19 +164,37 @@ Triggered from the model selector or the first-launch screen.
 ## 6. UI states per screen
 
 ### Home
-- `empty` — No recent transcripts, drop zone prominent
-- `has_recents` — Recent files listed below drop zone
-- `dragging` — Drop zone highlighted on file drag
+
+- `empty` - no recent transcripts, drop zone prominent
+- `has_recents` - recent files listed below drop zone
+- `dragging` - drop zone highlighted on file drag
+
+### File Preview
+
+- `ready` - selected model available and start button enabled
+- `low_ram_warning` - recommended model exceeds comfortable hardware budget
+- `model_not_downloaded` - selected model missing locally, download action shown
+- `model_selector_open` - alternate models visible
 
 ### Transcription
-- `loading` — Model loading into memory
-- `running` — Progress bar + live segments streaming
-- `paused` — Not implemented in v0.1
-- `cancelled` — Return to Home
-- `complete` — Auto-navigate to Transcript View
+
+- `loading` - model loading into memory
+- `running` - progress bar + live segments streaming
+- `cancelled` - return to Home
+- `complete` - navigate to Transcript View after success state
 
 ### Model Manager
-- `not_downloaded` — [Download] button + size indicator
-- `downloading` — Progress bar + [Cancel]
-- `ready` — [Use] + [Delete] actions
-- `selected` — Checkmark, currently active model
+
+- `not_downloaded` - download button + size indicator
+- `downloading` - progress bar + cancel action
+- `ready` - use + delete actions
+- `selected` - currently active model
+
+---
+
+## 7. Product rules clarified by this flow
+
+- v0.1 uses manual language selection only. The UI should show `FR` and `EN`, not `Auto`.
+- Full multilingual auto-detection is a later feature and should not appear as an active control in the POC.
+- The concrete model catalog for the POC is `Whisper Tiny` plus `VibeVoice INT8`.
+- Any future variants such as `VibeVoice INT4` or `VibeVoice FP16` should be added only after they exist as real downloadable artifacts.

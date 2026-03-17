@@ -1,64 +1,71 @@
-# Transcript — Roadmap
+# Transcript - Roadmap
 
-**Version** : 0.2.0
-**Updated** : March 2026
+**Version**: 0.2.0  
+**Updated**: March 2026
 
 ---
 
-## Phase 0 — Foundations ✅ Complete
+## Phase 0 - Foundations Completed
 
-**Deliverable** : POC validation of the ONNX hybrid strategy
+**Deliverable**: POC validation of the ONNX hybrid strategy
 
 | Task | Status |
-|---|---|
-| VibeVoice-ASR ONNX export (acoustic + semantic) | ✅ |
-| Numerical validation PyTorch vs ONNX | ✅ GO (5/5) |
-| CPU benchmark — RTFx > 1.0 | ✅ 1.1–1.3× |
-| Rust `ort` crate — compile + session load | ✅ |
-| CI GitHub Actions — validate + benchmark | ✅ |
-| ONNX artifacts on HuggingFace | ✅ MiicaLabs/vibevoice-onnx-artifacts |
+| --- | --- |
+| VibeVoice-ASR ONNX export (acoustic + semantic) | Complete |
+| Numerical validation PyTorch vs ONNX | Complete, GO (5/5) |
+| CPU benchmark - RTFx > 1.0 | Complete, 1.1-1.3x |
+| Rust `ort` crate - compile + session load | Complete |
+| CI GitHub Actions - validate + benchmark | Complete |
+| ONNX artifacts on HuggingFace | Complete, `MiicaLabs/vibevoice-onnx-artifacts` |
 
 ---
 
-## Phase 1 — POC (v0.1)
+## Phase 1 - POC (v0.1)
 
-**Deliverable** : Working app on 3 OS, Whisper Tiny bundled
+**Deliverable**: Working app on macOS, Windows, and Linux with Whisper Tiny available out of the box and VibeVoice INT8 downloadable in-app
 
 | Week | Focus |
-|---|---|
-| 1–2 | Tauri v2 + Leptos project scaffold, dev environment |
-| 3–4 | Audio pipeline: Symphonia decode → PCM → whisper.cpp |
-| 5–6 | ONNX tokenizers integrated (ort), Qwen2.5 decoder spike |
-| 7 | Leptos UI: drop zone, progress, transcript view |
+| --- | --- |
+| 1-2 | Tauri v2 + Leptos project scaffold, dev environment |
+| 3-4 | Audio pipeline: Symphonia decode -> PCM -> Whisper fallback path |
+| 5-6 | ONNX tokenizers integrated with `ort`, Qwen2.5 decoder spike |
+| 7 | Leptos UI: drop zone, preview, progress, transcript view |
 | 8 | Export TXT/SRT, model download, packaging |
 
-**Success criteria:**
-- Import MP3/WAV/M4A, transcribe FR or EN
-- Timestamps + speaker identification (VibeVoice)
-- Export TXT + SRT
-- Installer < 50 MB on all 3 platforms
+**Success criteria**
+
+- Import MP3, WAV, or M4A and transcribe French or English
+- Manual language selection only for v0.1 (`FR` or `EN`)
+- Timestamps plus speaker identification when using VibeVoice INT8
+- Export TXT and SRT
+- Install base app without forcing a large model download up front
+
+**Notes**
+
+- `Auto` language detection is not part of v0.1. Full multilingual auto-detection remains planned for v0.3.
+- The only concrete model variants in scope for v0.1 are `Whisper Tiny` and `VibeVoice INT8`.
 
 ---
 
-## Phase 2 — Consolidation (v0.2)
+## Phase 2 - Consolidation (v0.2)
 
-**Deliverable** : Stable public beta
+**Deliverable**: Stable public beta
 
 - Model manager UI (download, delete, storage)
-- Hardware tier detection → auto model recommendation
+- Hardware tier detection -> auto model recommendation
 - Resumable downloads + SHA256 verification
-- Error handling & recovery
+- Error handling and recovery
 - Settings screen
 - CI/CD for app binaries (GitHub Releases)
 
 ---
 
-## Phase 3 — Features (v0.3)
+## Phase 3 - Features (v0.3)
 
-**Deliverable** : Feature-complete release candidate
+**Deliverable**: Feature-complete release candidate
 
 - Live microphone transcription
-- LLM post-processing (punctuation, summary via candle)
+- LLM post-processing (punctuation, summary via Candle)
 - DOCX + JSON export
 - Multilingual auto-detection
 - Keyboard shortcuts
@@ -66,9 +73,9 @@
 
 ---
 
-## Phase 4 — v1.0
+## Phase 4 - v1.0
 
-**Deliverable** : Signed, audited public release
+**Deliverable**: Signed, audited public release
 
 - Code audit + dependency review
 - macOS notarization + Windows code signing
