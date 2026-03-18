@@ -70,18 +70,18 @@
 
 ### Sprint 4 — Leptos UI
 
-- [ ] `src/app.rs` — Router + context providers (`hardware_info`, `settings`) (router + app state provider implemented; dedicated hardware/settings providers still pending)
+- [x] `src/app.rs` — Router + context providers (`hardware_info`, `settings`) + Single Stage `ThemeProvider`
 - [x] `src/pages/home.rs` — DropZone + RecentList
-- [ ] `src/pages/file_preview.rs` — FileInfoCard + ModelSelector + EstimateBox
-- [ ] `src/pages/transcription.rs` — ProgressBar + LiveSegmentList + SpeedMeter
-- [ ] `src/pages/transcript_view.rs` — Tabs (Speakers / Timeline / Raw) + ExportPanel
-- [ ] `src/components/sidebar.rs` — Singlestage Sidebar (basic sidebar implemented; design-system version still pending)
-- [ ] `src/components/drop_zone.rs` — leptos-use `use_drop_zone` (logic currently lives inline in `src/pages/home.rs`)
-- [ ] `src/components/live_segment_list.rs` — reactive Vec<Segment> + auto-scroll
-- [ ] `src/components/progress_bar.rs` — Singlestage Progress + Tauri event listener
-- [ ] `src/state/app_state.rs` — global signals (hardware_info, settings, active_model) (`selected_file`, `selected_model`, `hardware_info`, and `active_model` exist; settings state is still missing)
-- [ ] Dark mode via `leptos_darkmode`
-- [ ] End-to-end test: drop file → transcription → view segments
+- [x] `src/pages/file_preview.rs` — FileInfoCard + ModelSelector + EstimateBox
+- [x] `src/pages/transcription.rs` — Progress + LiveSegmentList + SpeedMeter
+- [x] `src/pages/transcript_view.rs` — Tabs (Speakers / Timeline / Raw) + ExportPanel
+- [x] `src/components/sidebar.rs` — Single Stage themed sidebar shell
+- [x] `src/components/drop_zone.rs` — leptos-use `use_drop_zone` + Tauri desktop drag/drop
+- [x] `src/components/live_segment_list.rs` — reactive Vec<Segment> + auto-scroll
+- [x] Progress UI delivered via Single Stage `Progress` in the transcription feature flow (custom `progress_bar` component removed)
+- [x] `src/state/app_state.rs` — split shared UI state (`AppShellState`, `TranscriptionSessionState`, `TranscriptViewState`)
+- [x] Dark mode via Single Stage `ThemeProvider` (replaced `leptos_darkmode`)
+- [ ] End-to-end manual runtime test: drop file → transcription → view segments
 
 ### Sprint 5 - Export, model download, packaging
 
@@ -102,7 +102,7 @@
 1. Run a manual 5-minute transcription and confirm segment/progress events in the UI.
 2. Benchmark the ONNX path on the dev machine and record RTFx.
 3. Run an installer/dev build verification to confirm bundled Whisper and ONNX assets resolve correctly outside the repo checkout.
-4. Turn the current UI skeleton into a working flow: extract `drop_zone`, build `file_preview`, and wire `transcription` to Tauri events.
+4. Validate the new Single Stage UI flow in the running Tauri app and capture any runtime regressions.
 5. After the first end-to-end flow works, implement hardware detection, model APIs, and TXT/SRT export.
 
 ---

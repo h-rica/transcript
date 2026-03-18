@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- End-to-end desktop workspace screens for preview, live transcription, transcript review, model management, and settings.
+- Locally persisted application settings for theme preference, default language and model, CPU thread count, export defaults, and privacy toggles.
+- Shared workspace data loading for installed models, detected hardware details, and saved settings inside the Leptos app shell.
+- Bundled model asset resolution for desktop transcription so packaged Whisper and ONNX resources can be used without manual path setup.
+
+### Changed
+- Reworked the desktop shell around Single Stage theming and wireframe-aligned workspace layouts, including updated navigation, home, models, and settings views.
+- Split frontend state into dedicated shell, transcription-session, and transcript-view stores to simplify data flow across the app.
+- Refactored intake, preview, transcription, and transcript-review logic into focused feature modules with reusable workspace components.
+
+### Fixed
+- Restored sidebar navigation and home-screen theme parity after the workspace shell refactor.
+- Improved the development helper startup flow so it waits for the Trunk dev server before launching the desktop app.
+
 ## [0.1.0] - 2026-03-17
 
 Initial pre-release foundation for the offline desktop transcription app, developed across 2026-03-16 and 2026-03-17.
