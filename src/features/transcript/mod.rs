@@ -5,7 +5,10 @@ use leptos_router::components::A;
 use wasm_bindgen_futures::JsFuture;
 
 use crate::{
-    components::workspace::{WorkspaceRoute, WorkspaceShell},
+    components::{
+        icons::{AppIcon, UiIcon},
+        workspace::{WorkspaceRoute, WorkspaceShell},
+    },
     features::shared::{format_mm_ss, speaker_palette},
     state::app_state::{
         ExportRequest, TranscriptSegment, TranscriptViewState, use_app_shell_state,
@@ -144,9 +147,7 @@ pub fn TranscriptScreen() -> impl IntoView {
                                     attr:class="inline-flex items-center gap-2 text-zinc-500 transition hover:text-zinc-950 dark:text-zinc-500 dark:hover:text-zinc-100"
                                     href="/"
                                 >
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
-                                        <path d="M9.5 3.5L5 8L9.5 12.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
-                                    </svg>
+                                    <UiIcon class="h-4 w-4" icon_name=AppIcon::ChevronLeft/>
                                     "Home"
                                 </A>
                                 <span class="truncate font-medium text-zinc-950 dark:text-zinc-100">{file_name}</span>
@@ -158,10 +159,7 @@ pub fn TranscriptScreen() -> impl IntoView {
                                     on:click=move |_| copy_segments.run(())
                                     type="button"
                                 >
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
-                                        <rect x="3" y="3" width="8" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
-                                        <path d="M6 1.5H12.5V10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
-                                    </svg>
+                                    <UiIcon class="h-4 w-4" icon_name=AppIcon::Copy/>
                                     "Copy all"
                                 </button>
                                 <ExportMenu run_export=run_export view_state=view_state.clone()/>
@@ -257,9 +255,7 @@ fn ExportMenu(view_state: TranscriptViewState, run_export: Callback<()>) -> impl
                 type="button"
             >
                 "Export"
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
-                    <path d="M4.5 6.5L8 10L11.5 6.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
-                </svg>
+                <UiIcon class="h-4 w-4" icon_name=AppIcon::ChevronDown/>
             </button>
 
             <Show when=move || view_state.export_open.get()>

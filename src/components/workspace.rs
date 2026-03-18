@@ -1,6 +1,8 @@
 use leptos::prelude::*;
 use leptos_router::components::A;
 
+use crate::components::icons::{AppIcon, UiIcon};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WorkspaceRoute {
     Home,
@@ -43,7 +45,7 @@ pub fn WorkspaceShell(route: WorkspaceRoute, children: Children) -> impl IntoVie
 
         view! {
             <A attr:class=classes href=href attr:title=label attr:aria-label=label>
-                {nav_icon(section)}
+                <UiIcon class="h-[18px] w-[18px]" icon_name=nav_icon(section)/>
             </A>
         }
     };
@@ -96,49 +98,10 @@ pub fn WorkspaceHeader(
     }
 }
 
-fn nav_icon(section: WorkspaceSection) -> AnyView {
+fn nav_icon(section: WorkspaceSection) -> AppIcon {
     match section {
-        WorkspaceSection::Home => view! {
-            <svg class="h-[18px] w-[18px]" fill="none" viewBox="0 0 16 16">
-                <path
-                    d="M2 7L8 2L14 7V14H10V10H6V14H2V7Z"
-                    stroke="currentColor"
-                    stroke-linejoin="round"
-                    stroke-width="1.2"
-                />
-            </svg>
-        }
-        .into_any(),
-        WorkspaceSection::Models => view! {
-            <svg class="h-[18px] w-[18px]" fill="none" viewBox="0 0 16 16">
-                <rect
-                    height="12"
-                    rx="2"
-                    stroke="currentColor"
-                    stroke-width="1.2"
-                    width="12"
-                    x="2"
-                    y="2"
-                />
-                <path d="M5 8H11" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M5 5.5H11" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M5 10.5H9" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-            </svg>
-        }
-        .into_any(),
-        WorkspaceSection::Settings => view! {
-            <svg class="h-[18px] w-[18px]" fill="none" viewBox="0 0 16 16">
-                <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
-                <path d="M8 1V3" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M8 13V15" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M1 8H3" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M13 8H15" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M3.1 3.1L4.5 4.5" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M11.5 11.5L12.9 12.9" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M3.1 12.9L4.5 11.5" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M11.5 4.5L12.9 3.1" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-            </svg>
-        }
-        .into_any(),
+        WorkspaceSection::Home => AppIcon::Home,
+        WorkspaceSection::Models => AppIcon::Models,
+        WorkspaceSection::Settings => AppIcon::Settings,
     }
 }

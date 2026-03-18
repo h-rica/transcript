@@ -9,6 +9,7 @@ leptos = { version = "0.8.17", features = ["csr"] }
 leptos_router = "0.8.12"
 leptos-use = "0.18.3"
 singlestage = "0.4"
+icondata = { version = "0.7", default-features = false, features = ["feather"] }
 
 # Tauri bridge — via wasm-bindgen direct (tauri-sys not on crates.io)
 tauri-sys = { git = "https://github.com/JonasKruckenberg/tauri-sys", branch = "v2", features = ["all"] }

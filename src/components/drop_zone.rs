@@ -5,7 +5,10 @@ use leptos::{html, prelude::*, task::spawn_local};
 use leptos_use::{UseDropZoneReturn, use_drop_zone};
 use wasm_bindgen::JsCast;
 
-use crate::state::app_state::SelectedFile;
+use crate::{
+    components::icons::{AppIcon, UiIcon},
+    state::app_state::SelectedFile,
+};
 
 #[component]
 pub fn DropZone(on_file: Callback<SelectedFile>) -> impl IntoView {
@@ -113,21 +116,7 @@ pub fn DropZone(on_file: Callback<SelectedFile>) -> impl IntoView {
                             "flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600 dark:bg-[#1a1c20] dark:text-zinc-300"
                         }
                     }>
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 20 20">
-                            <path
-                                d="M10 13V4M10 4L7 7M10 4L13 7"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.4"
-                            />
-                            <path
-                                d="M3 14V16C3 16.6 3.4 17 4 17H16C16.6 17 17 16.6 17 16V14"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-width="1.4"
-                            />
-                        </svg>
+                        <UiIcon class="h-5 w-5" icon_name=AppIcon::Upload/>
                     </div>
 
                     <h2 class="mt-4 text-[1.2rem] font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">

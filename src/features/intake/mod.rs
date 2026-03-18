@@ -4,6 +4,7 @@ use leptos_router::{components::A, hooks::use_navigate};
 use crate::{
     components::{
         drop_zone::DropZone,
+        icons::{AppIcon, UiIcon},
         workspace::{WorkspaceHeader, WorkspaceRoute, WorkspaceShell},
     },
     state::app_state::{SelectedFile, use_app_shell_state},
@@ -59,10 +60,7 @@ pub fn IntakeScreen() -> impl IntoView {
         <WorkspaceShell route=WorkspaceRoute::Home>
             <WorkspaceHeader title="Transcribe">
                 <div class="flex w-full max-w-sm items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm text-zinc-500 dark:border-zinc-800 dark:bg-[#121316] dark:text-zinc-500">
-                    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 12 12">
-                        <circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1.2"/>
-                        <path d="M8 8L10.5 10.5" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                    </svg>
+                    <UiIcon class="h-4 w-4 shrink-0" icon_name=AppIcon::Search/>
                     <input
                         class="w-full border-0 bg-transparent text-sm text-zinc-900 outline-none placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-500"
                         on:input=move |ev| search.set(event_target_value(&ev))
