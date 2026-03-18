@@ -8,17 +8,22 @@ edition = "2024"
 leptos = { version = "0.8.17", features = ["csr"] }
 leptos_router = "0.8.12"
 leptos-use = "0.18.3"
-leptos_darkmode = "0.3"
 singlestage = "0.4"
+icondata = { version = "0.7", default-features = false, features = ["feather"] }
 
 # Tauri bridge — via wasm-bindgen direct (tauri-sys not on crates.io)
-tauri-sys = { git = "https://github.com/JonasKruckenberg/tauri-sys", branch = "v2" }
+tauri-sys = { git = "https://github.com/JonasKruckenberg/tauri-sys", branch = "v2", features = ["all"] }
 
 # Serialization / WASM
+futures = "0.3.31"
 serde = { version = "1.0.228", features = ["derive"] }
 serde-wasm-bindgen = "0.6.5"
 wasm-bindgen = "0.2.114"
 wasm-bindgen-futures = "0.4.64"
+web-sys = { version = "0.3.81", features = ["Clipboard", "Document", "Element", "FileList", "HtmlElement", "HtmlInputElement", "Navigator", "Window"] }
 
 # Error handling
 anyhow = "1.0.102"
+
+[dev-dependencies]
+toml = "0.8"

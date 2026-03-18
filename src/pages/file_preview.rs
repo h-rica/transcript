@@ -1,6 +1,8 @@
 use leptos::prelude::*;
 
+use crate::features::preview::PreviewScreen;
+
 #[component]
 pub fn FilePreviewPage() -> impl IntoView {
-    view! { <div class="p-8">"File Preview"</div> }
+    view! { <PreviewScreen/> }
 }

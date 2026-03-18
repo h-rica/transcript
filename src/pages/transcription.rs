@@ -1,6 +1,8 @@
 use leptos::prelude::*;
 
+use crate::features::transcription::TranscriptionScreen;
+
 #[component]
 pub fn TranscriptionPage() -> impl IntoView {
-    view! { <div class="p-8">"Transcription"</div> }
+    view! { <TranscriptionScreen/> }
 }

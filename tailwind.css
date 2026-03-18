@@ -1,7 +1,63 @@
 /* tailwind.css — v4 */
 @import "tailwindcss";
+@custom-variant dark (&:where([data-ui-theme="dark"], [data-ui-theme="dark"] *));
 
 @theme {
     --color-primary: #1E293B;
     --color-surface: #F8FAFC;
+}
+
+@layer components {
+    .transcript-ui button.singlestage-btn-primary,
+    .transcript-ui button.singlestage-btn-secondary,
+    .transcript-ui button.singlestage-btn-outline,
+    .transcript-ui button.singlestage-btn-ghost,
+    .transcript-ui button.singlestage-btn-link,
+    .transcript-ui button.singlestage-btn-destructive {
+        @apply h-8 gap-1.5 px-3 text-[13px] has-[>svg]:px-2.5;
+    }
+
+    .transcript-ui button.singlestage-btn-icon {
+        @apply size-8;
+    }
+
+    .transcript-ui button.singlestage-btn-sm {
+        @apply h-7 gap-1.5 px-2.5 text-[13px] has-[>svg]:px-2;
+    }
+
+    .transcript-ui button.singlestage-btn-sm-icon {
+        @apply size-7;
+    }
+
+    .transcript-ui button.singlestage-btn-lg {
+        @apply h-9 gap-1.5 px-4 text-sm has-[>svg]:px-3;
+    }
+
+    .transcript-ui button.singlestage-btn-lg-icon {
+        @apply size-9;
+    }
+
+    .transcript-ui input.singlestage-input[type="date"],
+    .transcript-ui input.singlestage-input[type="datetime-local"],
+    .transcript-ui input.singlestage-input[type="email"],
+    .transcript-ui input.singlestage-input[type="file"],
+    .transcript-ui input.singlestage-input[type="month"],
+    .transcript-ui input.singlestage-input[type="number"],
+    .transcript-ui input.singlestage-input[type="password"],
+    .transcript-ui input.singlestage-input[type="search"],
+    .transcript-ui input.singlestage-input[type="tel"],
+    .transcript-ui input.singlestage-input[type="text"],
+    .transcript-ui input.singlestage-input[type="time"],
+    .transcript-ui input.singlestage-input[type="url"],
+    .transcript-ui input.singlestage-input[type="week"] {
+        @apply h-8 px-3 py-1 text-[13px] md:text-[13px];
+    }
+
+    .transcript-ui select.singlestage-select {
+        @apply h-8 pl-3 pr-8 text-[13px] bg-position-[center_right_0.625rem] bg-size-[0.875rem];
+    }
+
+    .transcript-ui input.singlestage-input[type="radio"] {
+        @apply size-3.5;
+    }
 }
