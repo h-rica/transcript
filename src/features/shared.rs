@@ -48,9 +48,12 @@ pub fn format_bytes(size: u64) -> String {
     let kb = 1024.0;
     let mb = kb * 1024.0;
     let gb = mb * 1024.0;
+    let tb = gb * 1024.0;
     let size = size as f64;
 
-    if size >= gb {
+    if size >= tb {
+        format!("{:.2} TB", size / tb)
+    } else if size >= gb {
         format!("{:.2} GB", size / gb)
     } else if size >= mb {
         format!("{:.1} MB", size / mb)
@@ -91,5 +94,20 @@ pub fn speaker_palette(speaker: &str) -> (&'static str, &'static str) {
         1 => ("#fce7f3", "#9d174d"),
         2 => ("#dcfce7", "#166534"),
         _ => ("#ede9fe", "#5b21b6"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::format_bytes;
+
+    #[test]
+    fn format_bytes_promotes_to_gb_when_needed() {
+        assert_eq!(format_bytes(1_500 * 1024 * 1024), "1.46 GB");
+    }
+
+    #[test]
+    fn format_bytes_promotes_to_tb_when_needed() {
+        assert_eq!(format_bytes(2 * 1024_u64.pow(4)), "2.00 TB");
     }
 }
