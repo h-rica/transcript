@@ -3,6 +3,7 @@ use leptos_router::{
     components::{Route, Router, Routes},
     path,
 };
+use leptos_use::use_preferred_dark;
 use singlestage::{Mode, ThemeProvider, ThemeProviderContext};
 
 use crate::features::workspace_data::{load_hardware_info, load_settings, load_workspace_models};
@@ -13,6 +14,16 @@ use crate::pages::{
 use crate::state::app_state::{
     ThemePreference, provide_app_state, use_app_shell_state, use_transcript_view_state,
 };
+
+fn sync_app_theme_attribute(is_dark: bool) {
+    let Some(document) = web_sys::window().and_then(|window| window.document()) else {
+        return;
+    };
+    let Some(root) = document.document_element() else {
+        return;
+    };
+    let _ = root.set_attribute("data-ui-theme", if is_dark { "dark" } else { "light" });
+}
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -30,13 +41,20 @@ fn AppShell() -> impl IntoView {
     let shell = use_app_shell_state();
     let transcript_view = use_transcript_view_state();
     let theme = expect_context::<ThemeProviderContext>();
+    let system_prefers_dark = use_preferred_dark();
     let bootstrapped = RwSignal::new(false);
 
     Effect::new(move |_| {
-        theme.mode.set(match shell.theme_preference.get() {
+        let preference = shell.theme_preference.get();
+        theme.mode.set(match preference {
             ThemePreference::Auto => Mode::Auto,
             ThemePreference::Dark => Mode::Dark,
             ThemePreference::Light => Mode::Light,
+        });
+        sync_app_theme_attribute(match preference {
+            ThemePreference::Auto => system_prefers_dark.get(),
+            ThemePreference::Dark => true,
+            ThemePreference::Light => false,
         });
     });
 
@@ -89,15 +107,17 @@ fn AppShell() -> impl IntoView {
     });
 
     view! {
-        <Router>
-            <Routes fallback=|| view! { <p class="p-8 text-zinc-400">"Page not found"</p> }>
-                <Route path=path!("/")               view=HomePage/>
-                <Route path=path!("/preview")        view=FilePreviewPage/>
-                <Route path=path!("/transcription")  view=TranscriptionPage/>
-                <Route path=path!("/transcript/:id") view=TranscriptViewPage/>
-                <Route path=path!("/models")         view=ModelManagerPage/>
-                <Route path=path!("/settings")       view=SettingsPage/>
-            </Routes>
-        </Router>
+        <div class="transcript-ui">
+            <Router>
+                <Routes fallback=|| view! { <p class="p-8 text-zinc-400">"Page not found"</p> }>
+                    <Route path=path!("/")               view=HomePage/>
+                    <Route path=path!("/preview")        view=FilePreviewPage/>
+                    <Route path=path!("/transcription")  view=TranscriptionPage/>
+                    <Route path=path!("/transcript/:id") view=TranscriptViewPage/>
+                    <Route path=path!("/models")         view=ModelManagerPage/>
+                    <Route path=path!("/settings")       view=SettingsPage/>
+                </Routes>
+            </Router>
+        </div>
     }
 }

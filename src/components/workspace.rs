@@ -33,8 +33,17 @@ impl WorkspaceRoute {
 }
 
 #[component]
-pub fn WorkspaceShell(route: WorkspaceRoute, children: Children) -> impl IntoView {
+pub fn WorkspaceShell(
+    route: WorkspaceRoute,
+    #[prop(optional, into)] content_class: MaybeProp<String>,
+    children: Children,
+) -> impl IntoView {
     let active = route.section();
+    let content_class = move || {
+        content_class
+            .get()
+            .unwrap_or_else(|| "px-4 py-4 lg:px-6 lg:py-5".to_string())
+    };
 
     let nav_button = move |section: WorkspaceSection, href: &'static str, label: &'static str| {
         let classes = if active == section {
@@ -51,9 +60,9 @@ pub fn WorkspaceShell(route: WorkspaceRoute, children: Children) -> impl IntoVie
     };
 
     view! {
-        <div class="h-screen w-full overflow-hidden bg-zinc-50 text-zinc-950 dark:bg-[#1d1f1c] dark:text-zinc-50">
+        <div class="h-screen w-full overflow-hidden bg-zinc-100 text-zinc-950 dark:bg-[#22231f] dark:text-zinc-50">
             <div class="flex h-full w-full overflow-hidden">
-                <aside class="flex w-[52px] shrink-0 flex-col items-center border-r border-zinc-200 bg-zinc-100 px-[7px] py-3 dark:border-white/5 dark:bg-[#22231f]">
+                <aside class="flex w-[52px] shrink-0 flex-col items-center bg-zinc-100 px-[7px] py-3 dark:border-white/5 dark:bg-[#22231f]">
                     <div class="flex flex-col items-center gap-2">
                         {nav_button(WorkspaceSection::Home, "/", "Home")}
                         {nav_button(WorkspaceSection::Models, "/models", "Models")}
@@ -64,13 +73,15 @@ pub fn WorkspaceShell(route: WorkspaceRoute, children: Children) -> impl IntoVie
                     </div>
                 </aside>
 
-                <main class="min-h-0 min-w-0 flex-1 overflow-hidden bg-white dark:bg-[#2c2d29]">
-                    <div class="h-full overflow-y-auto overscroll-contain">
-                        <div class="flex min-h-full flex-col px-4 py-4 lg:px-6 lg:py-5">
-                            <div class="flex w-full flex-col gap-5">{children()}</div>
+                <div class="flex min-h-0 min-w-0 flex-1 flex-col box-border pt-2">
+                    <main class="min-h-0 min-w-0 flex-1 overflow-hidden rounded-tl-lg bg-white shadow dark:bg-[#2c2d29]">
+                        <div class="h-full overflow-y-auto overscroll-contain">
+                            <div class=move || format!("flex min-h-full flex-col {}", content_class())>
+                                <div class="flex min-h-full w-full flex-1 flex-col gap-5">{children()}</div>
+                            </div>
                         </div>
-                    </div>
-                </main>
+                    </main>
+                </div>
             </div>
         </div>
     }
