@@ -1,7 +1,10 @@
 use leptos::{prelude::*, task::spawn_local};
 
 use crate::{
-    components::workspace::{WorkspaceRoute, WorkspaceShell},
+    components::{
+        icons::{AppIcon, UiIcon},
+        workspace::{WorkspaceRoute, WorkspaceShell},
+    },
     features::workspace_data::fallback_models,
     state::app_state::{Settings, ThemePreference, use_app_shell_state, use_transcript_view_state},
 };
@@ -28,38 +31,38 @@ pub fn SettingsPage() -> impl IntoView {
 
     view! {
         <WorkspaceShell route=WorkspaceRoute::Settings>
-            <section class="overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-sm dark:border-white/5 dark:bg-[#30312d]">
-                <div class="grid min-h-[42rem] lg:grid-cols-[190px_minmax(0,1fr)]">
+            <section class="flex min-h-full flex-1 overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-sm dark:border-white/5 dark:bg-[#30312d]">
+                <div class="grid min-h-full flex-1 lg:grid-cols-[190px_minmax(0,1fr)]">
                     <nav class="border-b border-zinc-200 bg-zinc-50/90 px-3 py-4 dark:border-white/5 dark:bg-[#2a2b27] lg:border-b-0 lg:border-r">
                         <div class="space-y-1">
                             <SettingsNavButton
                                 active_section=active_section
-                                icon=settings_nav_icon("transcription")
+                                icon=AppIcon::Transcription
                                 id="transcription"
                                 label="Transcription"
                             />
                             <SettingsNavButton
                                 active_section=active_section
-                                icon=settings_nav_icon("export")
+                                icon=AppIcon::Export
                                 id="export"
                                 label="Export"
                             />
                             <SettingsNavButton
                                 active_section=active_section
-                                icon=settings_nav_icon("privacy")
+                                icon=AppIcon::Privacy
                                 id="privacy"
                                 label="Privacy"
                             />
                             <SettingsNavButton
                                 active_section=active_section
-                                icon=settings_nav_icon("about")
+                                icon=AppIcon::About
                                 id="about"
                                 label="About"
                             />
                         </div>
                     </nav>
 
-                    <div class="min-w-0 px-5 py-6 lg:px-8 lg:py-7">
+                    <div class="flex min-h-full min-w-0 flex-col px-5 py-6 lg:px-8 lg:py-7">
                         {move || match active_section.get().as_str() {
                             "transcription" => {
                                 let language_state = shell.clone();
@@ -73,7 +76,7 @@ pub fn SettingsPage() -> impl IntoView {
                                     .collect::<Vec<_>>();
 
                                 view! {
-                                    <div class="space-y-8">
+                                    <div class="flex min-h-full flex-col gap-8">
                                         <SectionIntro
                                             title="Transcription"
                                             subtitle="Defaults applied to each new file. Override them from preview whenever a run needs different language or model settings."
@@ -190,7 +193,7 @@ pub fn SettingsPage() -> impl IntoView {
                                 let speaker_labels_state = shell.clone();
 
                                 view! {
-                                    <div class="space-y-8">
+                                    <div class="flex min-h-full flex-col gap-8">
                                         <SectionIntro
                                             title="Export"
                                             subtitle="Choose the transcript format defaults the review screen should open with after each local transcription run."
@@ -279,7 +282,7 @@ pub fn SettingsPage() -> impl IntoView {
                                 let updates_state = shell.clone();
 
                                 view! {
-                                    <div class="space-y-8">
+                                    <div class="flex min-h-full flex-col gap-8">
                                         <SectionIntro
                                             title="Privacy"
                                             subtitle="Transcript keeps inference local. These controls only affect optional diagnostics and desktop update checks."
@@ -330,7 +333,7 @@ pub fn SettingsPage() -> impl IntoView {
                                 let model_count = models;
 
                                 view! {
-                                    <div class="space-y-8">
+                                    <div class="flex min-h-full flex-col gap-8">
                                         <SectionIntro
                                             title="About"
                                             subtitle="Operational metadata for support, debugging, and environment clarity."
@@ -425,7 +428,7 @@ fn SettingsNavButton(
     active_section: RwSignal<String>,
     id: &'static str,
     label: &'static str,
-    icon: AnyView,
+    icon: AppIcon,
 ) -> impl IntoView {
     view! {
         <button
@@ -440,7 +443,7 @@ fn SettingsNavButton(
             type="button"
         >
             <span class="flex h-8 w-8 items-center justify-center rounded-[0.9rem] border border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-white/5 dark:bg-[#242621] dark:text-zinc-300">
-                {icon}
+                <UiIcon class="h-4 w-4" icon_name=icon/>
             </span>
             <span>{label}</span>
         </button>
@@ -462,7 +465,7 @@ fn SettingsGroup(heading: &'static str, children: Children) -> impl IntoView {
     view! {
         <section>
             <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-500">{heading}</p>
-            <div class="mt-4 rounded-[1.1rem] border border-zinc-200/90 bg-white/70 px-5 dark:border-white/5 dark:bg-[#2c2d29]">
+            <div class="mt-4 px-1">
                 {children()}
             </div>
         </section>
@@ -561,40 +564,5 @@ fn SettingsInfoRow(
         <SettingsRow label=label description=description>
             <p class="text-sm leading-6 text-zinc-700 dark:text-zinc-300">{move || value.get()}</p>
         </SettingsRow>
-    }
-}
-
-fn settings_nav_icon(section: &str) -> AnyView {
-    match section {
-        "transcription" => view! {
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
-                <path d="M4 4H12" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M4 8H10" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M4 12H8" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-            </svg>
-        }
-        .into_any(),
-        "export" => view! {
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
-                <path d="M8 3V10" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <path d="M5.5 7.5L8 10L10.5 7.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
-                <path d="M3 12.5H13" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-            </svg>
-        }
-        .into_any(),
-        "privacy" => view! {
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
-                <path d="M8 2L12 3.5V7.2C12 9.6 10.3 11.8 8 12.5C5.7 11.8 4 9.6 4 7.2V3.5L8 2Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.2"/>
-            </svg>
-        }
-        .into_any(),
-        _ => view! {
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
-                <circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.2"/>
-                <path d="M8 6V8.2" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
-                <circle cx="8" cy="11" r="0.7" fill="currentColor"/>
-            </svg>
-        }
-        .into_any(),
     }
 }
