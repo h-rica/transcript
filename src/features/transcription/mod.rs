@@ -6,11 +6,11 @@ use leptos_router::{components::A, hooks::use_navigate};
 use crate::{
     components::{
         live_segment_list::LiveSegmentList,
-        workspace::{WorkspaceHeader, WorkspaceRoute, WorkspaceShell},
+        workspace::{WorkspaceRoute, WorkspaceShell},
     },
-    features::shared::{format_elapsed, status_label},
+    features::shared::{format_elapsed, speaker_palette, status_label},
     state::app_state::{
-        TranscriptionSessionState, TranscriptionStatus, use_app_shell_state,
+        TranscriptSegment, TranscriptionSessionState, TranscriptionStatus, use_app_shell_state,
         use_transcription_session_state,
     },
 };
@@ -37,115 +37,122 @@ pub fn TranscriptionScreen() -> impl IntoView {
         });
     });
 
+    let navigate_to_transcript = navigate.clone();
     let open_transcript =
-        Callback::new(move |_| navigate("/transcript/current", Default::default()));
+        Callback::new(move |_| navigate_to_transcript("/transcript/current", Default::default()));
+    let navigate_to_preview = navigate.clone();
+    let return_to_preview =
+        Callback::new(move |_| navigate_to_preview("/preview", Default::default()));
 
     view! {
         <WorkspaceShell route=WorkspaceRoute::Transcription>
-            <WorkspaceHeader
-                title="Transcribing"
-                subtitle="Keep the local run visible while the model warms up, streams segments, and finalizes the transcript."
-            >
-                <span class="inline-flex items-center rounded-full border border-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
-                    {move || shell.active_model.get()}
-                </span>
-            </WorkspaceHeader>
-
             {move || {
                 if shell.selected_file.get().is_none() {
                     return view! {
-                        <div class="rounded-[1.15rem] border border-dashed border-zinc-300 bg-zinc-100/80 px-6 py-12 text-center dark:border-zinc-800 dark:bg-[#121316]">
+                        <section class="rounded-[1.35rem] border border-zinc-200 bg-white px-6 py-16 text-center shadow-sm dark:border-white/5 dark:bg-[#30312d]">
                             <p class="text-base font-medium text-zinc-950 dark:text-zinc-100">"No active run"</p>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-500">
-                                "Choose a file and model in preview before opening transcription."
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                                "Choose a file and model in preview before opening the transcription workspace."
                             </p>
                             <A
-                                attr:class="mt-5 inline-flex h-8 items-center rounded-lg border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-[#17181b] dark:hover:text-zinc-100"
+                                attr:class="mt-6 inline-flex h-10 items-center rounded-[0.95rem] border border-zinc-200 px-4 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-[#34362f] dark:hover:text-zinc-100"
                                 href="/preview"
                             >
                                 "Open preview"
                             </A>
-                        </div>
+                        </section>
                     }
                     .into_any();
                 }
 
-                let summary = session.summary.get();
                 let status = session.status.get();
                 let status_text = status_label(&status);
                 let progress = session.progress.get();
                 let percent = (progress.percent.clamp(0.0, 1.0) * 100.0).round();
-                let speed = speed_label(&session);
+                let speed_label = speed_eta_label(&session);
                 let failed = matches!(status, TranscriptionStatus::Failed(_));
                 let complete = matches!(status, TranscriptionStatus::Complete);
-                let loading = matches!(status, TranscriptionStatus::LoadingModel);
+                let segments = session.segments.get();
+                let speakers = unique_speakers(&segments);
+                let file_name = shell
+                    .selected_file
+                    .get()
+                    .map(|file| file.name)
+                    .unwrap_or_else(|| "Waiting for file selection".into());
 
                 view! {
-                    <div class="space-y-4">
-                        <section class="rounded-[1.15rem] border border-zinc-200 bg-white px-4 py-4 dark:border-zinc-900 dark:bg-[#141519]">
-                            <div class="flex flex-wrap items-start justify-between gap-3">
-                                <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class=move || {
-                                            if complete {
-                                                "h-2 w-2 rounded-full bg-emerald-500"
-                                            } else if failed {
-                                                "h-2 w-2 rounded-full bg-rose-500"
-                                            } else {
-                                                "h-2 w-2 rounded-full bg-sky-500"
-                                            }
-                                        }></span>
-                                        <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">{status_text.clone()}</p>
-                                    </div>
-                                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-500">
-                                        {move || {
-                                            shell
-                                                .selected_file
-                                                .get()
-                                                .map(|file| file.name)
-                                                .unwrap_or_else(|| "Waiting for file selection".into())
-                                        }}
-                                    </p>
-                                </div>
-                                <div class="text-sm font-medium text-zinc-500 dark:text-zinc-500">{format!("{percent:.0}%")}</div>
+                    <section class="overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-sm dark:border-white/5 dark:bg-[#30312d]">
+                        <div class="flex flex-wrap items-center gap-3 border-b border-zinc-200 px-5 py-4 dark:border-white/5">
+                            <div class="flex items-center gap-2 text-sm font-medium text-zinc-950 dark:text-zinc-100">
+                                <span class=status_indicator_class(&status)></span>
+                                {status_text.clone()}
+                            </div>
+                            <span class="text-sm text-zinc-500 dark:text-zinc-500">{file_name}</span>
+                        </div>
+
+                        <div class="px-5 py-5">
+                            <div class="flex flex-wrap items-end justify-between gap-3">
+                                <p class="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+                                    {progress_headline(&status)}
+                                </p>
+                                <p class="text-sm font-semibold text-zinc-700 dark:text-zinc-200">{format!("{percent:.0}%")}</p>
                             </div>
 
-                            <div class="mt-4 h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                            <div class="mt-3 h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-[#232520]">
                                 <div
                                     class="h-full rounded-full bg-zinc-950 transition-[width] dark:bg-zinc-100"
                                     style=format!("width: {:.2}%;", percent)
                                 ></div>
                             </div>
 
-                            <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                                <MetricTile label="Elapsed" value=format_elapsed(progress.elapsed_s)/>
-                                <MetricTile label="Speed" value=speed/>
-                                <MetricTile label="Segments" value=session.segments.get().len().to_string()/>
-                                <MetricTile label="Language" value=shell.selected_language.get().to_uppercase()/>
+                            <div class="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-500">
+                                <span>{format!("Elapsed {}", format_elapsed(progress.elapsed_s))}</span>
+                                <span>{speed_label}</span>
                             </div>
 
                             <Show when=move || failed>
-                                <div class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200">
+                                <div class="mt-4 rounded-[1rem] border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200">
                                     {move || session.error.get().unwrap_or_else(|| status_label(&session.status.get()))}
                                 </div>
                             </Show>
-                        </section>
 
-                        <section class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
-                            <div class="rounded-[1.15rem] border border-zinc-200 bg-white px-4 py-4 dark:border-zinc-900 dark:bg-[#141519]">
-                                <div class="mb-3 flex items-center justify-between gap-3">
-                                    <div>
-                                        <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">"Live segments"</p>
-                                        <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-500">
-                                            {if loading {
-                                                "The model is warming up before the first segment arrives."
-                                            } else {
-                                                "Segments append here while local inference progresses."
-                                            }}
-                                        </p>
-                                    </div>
+                            <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200 pt-5 dark:border-white/5">
+                                <div>
+                                    <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">"Live segments"</p>
+                                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                                        {if complete {
+                                            "The run is complete. Review the final transcript or return to preview for another file."
+                                        } else {
+                                            "Segments stream here while local inference progresses."
+                                        }}
+                                    </p>
                                 </div>
 
+                                <div class="flex flex-wrap items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+                                    {if speakers.is_empty() {
+                                        view! {
+                                            <span class="text-sm text-zinc-500 dark:text-zinc-500">"Speaker legend pending"</span>
+                                        }
+                                            .into_any()
+                                    } else {
+                                        speakers
+                                            .into_iter()
+                                            .map(|speaker| {
+                                                let (_, foreground) = speaker_palette(&speaker);
+                                                view! {
+                                                    <span class="inline-flex items-center gap-2">
+                                                        <span class="h-2.5 w-2.5 rounded-full" style=format!("background:{};", foreground)></span>
+                                                        {speaker}
+                                                    </span>
+                                                }
+                                            })
+                                            .collect_view()
+                                            .into_any()
+                                    }}
+                                </div>
+                            </div>
+
+                            <div class="mt-4 min-h-[22rem]">
                                 <LiveSegmentList
                                     segments=session.segments
                                     pending=Signal::derive(move || {
@@ -157,67 +164,44 @@ pub fn TranscriptionScreen() -> impl IntoView {
                                 />
                             </div>
 
-                            <div class="space-y-4">
-                                <section class="rounded-[1.15rem] border border-zinc-200 bg-white px-4 py-4 dark:border-zinc-900 dark:bg-[#141519]">
-                                    <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">"Run summary"</p>
-                                    <div class="mt-4 space-y-3">
-                                        <SummaryRow label="Progress" value=format!("{percent:.0}%")/>
-                                        <SummaryRow
-                                            label="Words"
-                                            value=summary
-                                                .as_ref()
-                                                .map(|item| item.words.to_string())
-                                                .unwrap_or_else(|| "--".into())
-                                        />
-                                        <SummaryRow
-                                            label="Speakers"
-                                            value=summary
-                                                .as_ref()
-                                                .map(|item| item.speakers.to_string())
-                                                .unwrap_or_else(|| "--".into())
-                                        />
-                                        <SummaryRow label="Status" value=status_text.clone()/>
-                                    </div>
-                                </section>
-
-                                {if let Some(summary) = summary {
+                            <div class="mt-5 border-t border-zinc-200 pt-5 dark:border-white/5">
+                                {if complete {
                                     view! {
-                                        <section class="rounded-[1.15rem] border border-emerald-300 bg-emerald-50 px-4 py-4 dark:border-emerald-900/60 dark:bg-emerald-950/20">
-                                            <p class="text-sm font-medium text-emerald-900 dark:text-emerald-100">"Transcription complete"</p>
-                                            <p class="mt-2 text-sm text-emerald-800 dark:text-emerald-200">
-                                                {format!(
-                                                    "{} segments / {} speakers / {} words in {}.",
-                                                    summary.segments,
-                                                    summary.speakers,
-                                                    summary.words,
-                                                    format_elapsed(summary.elapsed_s)
-                                                )}
-                                            </p>
-                                            <button
-                                                class="mt-4 inline-flex h-9 w-full items-center justify-center rounded-lg bg-zinc-950 px-4 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
-                                                on:click=move |_| open_transcript.run(())
-                                                type="button"
-                                            >
-                                                "Open transcript"
-                                            </button>
-                                        </section>
+                                        <button
+                                            class="inline-flex h-11 w-full items-center justify-center rounded-[0.95rem] border border-zinc-200 bg-zinc-100 px-4 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200 dark:border-white/10 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                                            on:click=move |_| open_transcript.run(())
+                                            type="button"
+                                        >
+                                            "Open transcript"
+                                        </button>
                                     }
-                                    .into_any()
+                                        .into_any()
+                                } else if failed {
+                                    view! {
+                                        <button
+                                            class="inline-flex h-11 w-full items-center justify-center rounded-[0.95rem] border border-zinc-200 px-4 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-[#34362f] dark:hover:text-zinc-100"
+                                            on:click=move |_| return_to_preview.run(())
+                                            type="button"
+                                        >
+                                            "Return to preview"
+                                        </button>
+                                    }
+                                        .into_any()
                                 } else {
                                     view! {
                                         <button
-                                            class="inline-flex h-9 w-full items-center justify-center rounded-lg border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:bg-[#141519] dark:text-zinc-300 dark:hover:bg-[#17181b] dark:hover:text-zinc-100"
+                                            class="inline-flex h-11 w-full items-center justify-center rounded-[0.95rem] border border-zinc-200 px-4 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-[#34362f] dark:hover:text-zinc-100"
                                             on:click=move |_| cancel.run(())
                                             type="button"
                                         >
                                             "Cancel transcription"
                                         </button>
                                     }
-                                    .into_any()
+                                        .into_any()
                                 }}
                             </div>
-                        </section>
-                    </div>
+                        </div>
+                    </section>
                 }
                 .into_any()
             }}
@@ -225,7 +209,16 @@ pub fn TranscriptionScreen() -> impl IntoView {
     }
 }
 
-fn speed_label(session: &TranscriptionSessionState) -> String {
+fn progress_headline(status: &TranscriptionStatus) -> &'static str {
+    match status {
+        TranscriptionStatus::LoadingModel => "Loading model...",
+        TranscriptionStatus::Complete => "Transcript ready",
+        TranscriptionStatus::Failed(_) => "Transcription interrupted",
+        _ => "Transcribing...",
+    }
+}
+
+fn speed_eta_label(session: &TranscriptionSessionState) -> String {
     let progress = session.progress.get();
     let duration = session
         .audio_info
@@ -233,31 +226,29 @@ fn speed_label(session: &TranscriptionSessionState) -> String {
         .map(|info| info.duration_s)
         .unwrap_or_default();
     if progress.elapsed_s == 0 || progress.percent <= 0.0 || duration <= 0.0 {
-        return "--".to_string();
+        return "Speed -- / ETA --".to_string();
     }
 
     let processed_seconds = duration * progress.percent;
     let rtfx = processed_seconds / progress.elapsed_s as f32;
     let remaining = ((duration - processed_seconds).max(0.0) / rtfx.max(0.1)).round() as u32;
-    format!("{rtfx:.2}x / ETA {}", format_elapsed(remaining))
+    format!("Speed {:.1}x / ETA {}", rtfx, format_elapsed(remaining))
 }
 
-#[component]
-fn MetricTile(label: &'static str, value: String) -> impl IntoView {
-    view! {
-        <div class="rounded-xl border border-zinc-200 bg-zinc-100/80 px-4 py-3 dark:border-zinc-800 dark:bg-[#101114]">
-            <p class="text-[10px] font-medium uppercase tracking-[0.18em] text-zinc-500">{label}</p>
-            <p class="mt-2 text-sm font-semibold text-zinc-950 dark:text-zinc-100">{value}</p>
-        </div>
+fn status_indicator_class(status: &TranscriptionStatus) -> &'static str {
+    match status {
+        TranscriptionStatus::Complete => "h-2.5 w-2.5 rounded-full bg-emerald-500",
+        TranscriptionStatus::Failed(_) => "h-2.5 w-2.5 rounded-full bg-rose-500",
+        _ => "h-2.5 w-2.5 rounded-full bg-zinc-500 dark:bg-zinc-300",
     }
 }
 
-#[component]
-fn SummaryRow(label: &'static str, value: String) -> impl IntoView {
-    view! {
-        <div class="flex items-center justify-between gap-3 border-b border-zinc-200 pb-3 last:border-b-0 last:pb-0 dark:border-zinc-900">
-            <p class="text-sm text-zinc-600 dark:text-zinc-500">{label}</p>
-            <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">{value}</p>
-        </div>
-    }
+fn unique_speakers(segments: &[TranscriptSegment]) -> Vec<String> {
+    let mut speakers = segments
+        .iter()
+        .map(|segment| segment.speaker.clone())
+        .collect::<Vec<_>>();
+    speakers.sort();
+    speakers.dedup();
+    speakers
 }

@@ -1,14 +1,14 @@
 use leptos::{prelude::*, task::spawn_local};
 
 use crate::{
-    components::workspace::{WorkspaceHeader, WorkspaceRoute, WorkspaceShell},
-    features::workspace_data::{fallback_models, save_settings},
+    components::workspace::{WorkspaceRoute, WorkspaceShell},
+    features::workspace_data::fallback_models,
     state::app_state::{Settings, ThemePreference, use_app_shell_state, use_transcript_view_state},
 };
 
 fn persist_settings_snapshot(settings: Settings) {
     spawn_local(async move {
-        let _ = save_settings(settings).await;
+        let _ = crate::features::workspace_data::save_settings(settings).await;
     });
 }
 
@@ -17,314 +17,433 @@ pub fn SettingsPage() -> impl IntoView {
     let shell = use_app_shell_state();
     let transcript_view = use_transcript_view_state();
     let active_section = RwSignal::new("transcription".to_string());
-
-    let models = move || {
+    let models = Signal::derive(move || {
         let loaded = shell.available_models.get();
         if loaded.is_empty() {
             fallback_models()
         } else {
             loaded
         }
-    };
+    });
 
     view! {
         <WorkspaceShell route=WorkspaceRoute::Settings>
-            <WorkspaceHeader
-                title="Settings"
-                subtitle="Control local defaults, export rules, privacy choices, and desktop support metadata."
-            >
-                <span class="inline-flex items-center rounded-full border border-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
-                    "Stored locally"
-                </span>
-            </WorkspaceHeader>
+            <section class="overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-sm dark:border-white/5 dark:bg-[#30312d]">
+                <div class="grid min-h-[42rem] lg:grid-cols-[190px_minmax(0,1fr)]">
+                    <nav class="border-b border-zinc-200 bg-zinc-50/90 px-3 py-4 dark:border-white/5 dark:bg-[#2a2b27] lg:border-b-0 lg:border-r">
+                        <div class="space-y-1">
+                            <SettingsNavButton
+                                active_section=active_section
+                                icon=settings_nav_icon("transcription")
+                                id="transcription"
+                                label="Transcription"
+                            />
+                            <SettingsNavButton
+                                active_section=active_section
+                                icon=settings_nav_icon("export")
+                                id="export"
+                                label="Export"
+                            />
+                            <SettingsNavButton
+                                active_section=active_section
+                                icon=settings_nav_icon("privacy")
+                                id="privacy"
+                                label="Privacy"
+                            />
+                            <SettingsNavButton
+                                active_section=active_section
+                                icon=settings_nav_icon("about")
+                                id="about"
+                                label="About"
+                            />
+                        </div>
+                    </nav>
 
-            <div class="grid gap-5 lg:grid-cols-[160px_minmax(0,1fr)]">
-                <nav class="rounded-[1.2rem] border border-zinc-200 bg-white p-2 dark:border-zinc-900 dark:bg-[#141519]">
-                    {[
-                        ("transcription", "Transcription"),
-                        ("export", "Export"),
-                        ("privacy", "Privacy"),
-                        ("about", "About"),
-                    ]
-                        .into_iter()
-                        .map(|(id, label)| {
-                            view! {
-                                <button
-                                    class=move || {
-                                        if active_section.get() == id {
-                                            "mb-1 flex w-full items-center gap-3 rounded-lg bg-zinc-100 px-3 py-2 text-left text-sm font-medium text-zinc-950 dark:bg-[#101114] dark:text-zinc-50"
-                                        } else {
-                                            "mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-[#101114] dark:hover:text-zinc-100"
-                                        }
-                                    }
-                                    on:click=move |_| active_section.set(id.into())
-                                    type="button"
-                                >
-                                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-md border border-zinc-200 bg-zinc-50 text-[10px] font-semibold text-zinc-500 dark:border-zinc-800 dark:bg-[#0f1012] dark:text-zinc-400">
-                                        {nav_abbrev(label)}
-                                    </span>
-                                    {label}
-                                </button>
-                            }
-                        })
-                        .collect_view()}
-                </nav>
+                    <div class="min-w-0 px-5 py-6 lg:px-8 lg:py-7">
+                        {move || match active_section.get().as_str() {
+                            "transcription" => {
+                                let language_state = shell.clone();
+                                let model_state = shell.clone();
+                                let cpu_state = shell.clone();
+                                let keep_memory_state = shell.clone();
+                                let model_options = models
+                                    .get()
+                                    .into_iter()
+                                    .map(|model| (model.id, model.name))
+                                    .collect::<Vec<_>>();
 
-                <section class="rounded-[1.2rem] border border-zinc-200 bg-white px-5 py-5 dark:border-zinc-900 dark:bg-[#141519]">
-                    {move || match active_section.get().as_str() {
-                        "transcription" => {
-                            let model_catalog = models();
-                            let language_state = shell.clone();
-                            let model_state = shell.clone();
-                            let cpu_state = shell.clone();
-                            let keep_memory_state = shell.clone();
-
-                            view! {
-                                <div class="space-y-6">
-                                    <SectionIntro
-                                        title="Transcription"
-                                        subtitle="Defaults applied to each new file before manual overrides."
-                                    />
-
-                                    <SettingBlock label="Language" description="Default language applied when preview opens.">
-                                        <SegmentedRow
-                                            options=vec![
-                                                ("fr".to_string(), "French".to_string()),
-                                                ("en".to_string(), "English".to_string()),
-                                                ("auto".to_string(), "Auto".to_string()),
-                                            ]
-                                            value=Signal::derive(move || language_state.settings.get().default_language)
-                                            on_select=Callback::new(move |value: String| {
-                                                language_state.settings.update(|settings| settings.default_language = value.clone());
-                                                language_state.selected_language.set(value);
-                                                persist_settings_snapshot(language_state.settings.get_untracked());
-                                            })
+                                view! {
+                                    <div class="space-y-8">
+                                        <SectionIntro
+                                            title="Transcription"
+                                            subtitle="Defaults applied to each new file. Override them from preview whenever a run needs different language or model settings."
                                         />
-                                    </SettingBlock>
 
-                                    <SettingBlock label="Model" description="Preferred local profile before choosing a different one in preview.">
-                                        <SegmentedRow
-                                            options={model_catalog
-                                                .into_iter()
-                                                .map(|model| (model.id, model.name))
-                                                .collect::<Vec<_>>()}
-                                            value=Signal::derive(move || {
-                                                model_state
-                                                    .settings
-                                                    .get()
-                                                    .default_model
-                                                    .unwrap_or_else(|| "whisper-tiny".into())
-                                            })
-                                            on_select=Callback::new(move |value: String| {
-                                                model_state.settings.update(|settings| settings.default_model = Some(value.clone()));
-                                                model_state.selected_model.set(value.clone());
-                                                persist_settings_snapshot(model_state.settings.get_untracked());
-                                            })
-                                        />
-                                    </SettingBlock>
+                                        <SettingsGroup heading="Language">
+                                            <SettingsSelectRow
+                                                description="Override per file in the preview screen."
+                                                label="Default language"
+                                                options=vec![
+                                                    ("fr".to_string(), "French (FR)".to_string()),
+                                                    ("en".to_string(), "English (EN)".to_string()),
+                                                    ("auto".to_string(), "Auto detect".to_string()),
+                                                ]
+                                                value=Signal::derive(move || language_state.settings.get().default_language)
+                                                on_select=Callback::new(move |value: String| {
+                                                    language_state
+                                                        .settings
+                                                        .update(|settings| settings.default_language = value.clone());
+                                                    language_state.selected_language.set(value);
+                                                    persist_settings_snapshot(
+                                                        language_state.settings.get_untracked(),
+                                                    );
+                                                })
+                                            />
+                                        </SettingsGroup>
 
-                                    <SettingBlock label="CPU threads" description="Threads allocated to local inference by default.">
-                                        <SegmentedRow
-                                            options=vec![
-                                                ("2".to_string(), "2".to_string()),
-                                                ("4".to_string(), "4".to_string()),
-                                                ("8".to_string(), "8".to_string()),
-                                            ]
-                                            value=Signal::derive(move || cpu_state.settings.get().cpu_threads.to_string())
-                                            on_select=Callback::new(move |value: String| {
-                                                if let Ok(threads) = value.parse::<u32>() {
-                                                    cpu_state.settings.update(|settings| settings.cpu_threads = threads);
-                                                    persist_settings_snapshot(cpu_state.settings.get_untracked());
+                                        <SettingsGroup heading="Model">
+                                            <SettingsSelectRow
+                                                description="Set to Auto to keep the current hardware-driven default."
+                                                label="Default model"
+                                                options={
+                                                    let mut options = vec![(
+                                                        "auto".to_string(),
+                                                        "Auto".to_string(),
+                                                    )];
+                                                    options.extend(model_options.clone());
+                                                    options
                                                 }
-                                            })
+                                                value=Signal::derive(move || {
+                                                    model_state
+                                                        .settings
+                                                        .get()
+                                                        .default_model
+                                                        .unwrap_or_else(|| "auto".into())
+                                                })
+                                                on_select=Callback::new(move |value: String| {
+                                                    if value == "auto" {
+                                                        model_state.settings.update(|settings| {
+                                                            settings.default_model = None;
+                                                        });
+                                                    } else {
+                                                        model_state.settings.update(|settings| {
+                                                            settings.default_model = Some(value.clone());
+                                                        });
+                                                        model_state.selected_model.set(value.clone());
+                                                        model_state.active_model.set(value);
+                                                    }
+                                                    persist_settings_snapshot(
+                                                        model_state.settings.get_untracked(),
+                                                    );
+                                                })
+                                            />
+                                        </SettingsGroup>
+
+                                        <SettingsGroup heading="Performance">
+                                            <SettingsSelectRow
+                                                description="Threads allocated to local inference."
+                                                label="CPU threads"
+                                                options=vec![
+                                                    ("2".to_string(), "2 threads".to_string()),
+                                                    ("4".to_string(), "4 threads".to_string()),
+                                                    ("8".to_string(), "8 threads".to_string()),
+                                                ]
+                                                value=Signal::derive(move || cpu_state.settings.get().cpu_threads.to_string())
+                                                on_select=Callback::new(move |value: String| {
+                                                    if let Ok(threads) = value.parse::<u32>() {
+                                                        cpu_state.settings.update(|settings| {
+                                                            settings.cpu_threads = threads;
+                                                        });
+                                                        persist_settings_snapshot(
+                                                            cpu_state.settings.get_untracked(),
+                                                        );
+                                                    }
+                                                })
+                                            />
+
+                                            <SettingsToggleRow
+                                                description="Faster consecutive transcriptions, with higher RAM usage."
+                                                label="Keep model in memory"
+                                                value=Signal::derive(move || {
+                                                    keep_memory_state.settings.get().keep_model_in_memory
+                                                })
+                                                on_toggle=Callback::new(move |_| {
+                                                    keep_memory_state.settings.update(|settings| {
+                                                        settings.keep_model_in_memory =
+                                                            !settings.keep_model_in_memory;
+                                                    });
+                                                    persist_settings_snapshot(
+                                                        keep_memory_state.settings.get_untracked(),
+                                                    );
+                                                })
+                                            />
+                                        </SettingsGroup>
+                                    </div>
+                                }
+                                .into_any()
+                            }
+                            "export" => {
+                                let export_path_state = shell.clone();
+                                let format_state = shell.clone();
+                                let export_view_state = transcript_view.clone();
+                                let timestamps_state = shell.clone();
+                                let speaker_labels_state = shell.clone();
+
+                                view! {
+                                    <div class="space-y-8">
+                                        <SectionIntro
+                                            title="Export"
+                                            subtitle="Choose the transcript format defaults the review screen should open with after each local transcription run."
                                         />
-                                    </SettingBlock>
 
-                                    <ToggleRow
-                                        label="Keep model in memory"
-                                        description="Faster consecutive runs, with higher RAM usage."
-                                        value=Signal::derive(move || keep_memory_state.settings.get().keep_model_in_memory)
-                                        on_toggle=Callback::new(move |_| {
-                                            keep_memory_state.settings.update(|settings| {
-                                                settings.keep_model_in_memory = !settings.keep_model_in_memory;
-                                            });
-                                            persist_settings_snapshot(keep_memory_state.settings.get_untracked());
-                                        })
-                                    />
-                                </div>
+                                        <SettingsGroup heading="Destination">
+                                            <SettingsInfoRow
+                                                description="Current destination for local TXT and SRT files."
+                                                label="Export folder"
+                                                value=Signal::derive(move || {
+                                                    let path = export_path_state.settings.get().export_path;
+                                                    if path.is_empty() {
+                                                        "No custom export path configured yet.".into()
+                                                    } else {
+                                                        path
+                                                    }
+                                                })
+                                            />
+                                        </SettingsGroup>
+
+                                        <SettingsGroup heading="Format">
+                                            <SettingsSelectRow
+                                                description="The export menu opens with this format selected."
+                                                label="Default format"
+                                                options=vec![
+                                                    ("txt".to_string(), "TXT".to_string()),
+                                                    ("srt".to_string(), "SRT".to_string()),
+                                                ]
+                                                value=Signal::derive(move || {
+                                                    format_state.settings.get().default_export_format
+                                                })
+                                                on_select=Callback::new(move |value: String| {
+                                                    format_state.settings.update(|settings| {
+                                                        settings.default_export_format = value.clone();
+                                                    });
+                                                    export_view_state.export_format.set(value);
+                                                    persist_settings_snapshot(
+                                                        format_state.settings.get_untracked(),
+                                                    );
+                                                })
+                                            />
+
+                                            <SettingsToggleRow
+                                                description="Add timestamps automatically when the export format supports them."
+                                                label="Include timestamps"
+                                                value=Signal::derive(move || {
+                                                    timestamps_state.settings.get().include_timestamps
+                                                })
+                                                on_toggle=Callback::new(move |_| {
+                                                    timestamps_state.settings.update(|settings| {
+                                                        settings.include_timestamps =
+                                                            !settings.include_timestamps;
+                                                    });
+                                                    persist_settings_snapshot(
+                                                        timestamps_state.settings.get_untracked(),
+                                                    );
+                                                })
+                                            />
+
+                                            <SettingsToggleRow
+                                                description="Prefix speakers when diarization data exists in the transcript."
+                                                label="Include speaker labels"
+                                                value=Signal::derive(move || {
+                                                    speaker_labels_state
+                                                        .settings
+                                                        .get()
+                                                        .include_speaker_labels
+                                                })
+                                                on_toggle=Callback::new(move |_| {
+                                                    speaker_labels_state.settings.update(|settings| {
+                                                        settings.include_speaker_labels =
+                                                            !settings.include_speaker_labels;
+                                                    });
+                                                    persist_settings_snapshot(
+                                                        speaker_labels_state.settings.get_untracked(),
+                                                    );
+                                                })
+                                            />
+                                        </SettingsGroup>
+                                    </div>
+                                }
+                                .into_any()
                             }
-                            .into_any()
-                        }
-                        "export" => {
-                            let export_path_state = shell.clone();
-                            let format_state = shell.clone();
-                            let export_view_state = transcript_view.clone();
-                            let timestamps_state = shell.clone();
-                            let speaker_labels_state = shell.clone();
+                            "privacy" => {
+                                let telemetry_state = shell.clone();
+                                let updates_state = shell.clone();
 
-                            view! {
-                                <div class="space-y-6">
-                                    <SectionIntro
-                                        title="Export"
-                                        subtitle="Where transcript files go and which formatting options are preselected."
-                                    />
-
-                                    <InfoRow
-                                        label="Export folder"
-                                        description="Current destination for local TXT and SRT files."
-                                        value=Signal::derive(move || {
-                                            let path = export_path_state.settings.get().export_path;
-                                            if path.is_empty() {
-                                                "No custom export path configured yet.".into()
-                                            } else {
-                                                path
-                                            }
-                                        })
-                                    />
-
-                                    <SettingBlock label="Default format" description="The export overlay opens with this format selected.">
-                                        <SegmentedRow
-                                            options=vec![
-                                                ("txt".to_string(), "TXT".to_string()),
-                                                ("srt".to_string(), "SRT".to_string()),
-                                            ]
-                                            value=Signal::derive(move || format_state.settings.get().default_export_format)
-                                            on_select=Callback::new(move |value: String| {
-                                                format_state.settings.update(|settings| settings.default_export_format = value.clone());
-                                                export_view_state.export_format.set(value);
-                                                persist_settings_snapshot(format_state.settings.get_untracked());
-                                            })
+                                view! {
+                                    <div class="space-y-8">
+                                        <SectionIntro
+                                            title="Privacy"
+                                            subtitle="Transcript keeps inference local. These controls only affect optional diagnostics and desktop update checks."
                                         />
-                                    </SettingBlock>
 
-                                    <ToggleRow
-                                        label="Include timestamps"
-                                        description="Add timestamps automatically to export output when supported."
-                                        value=Signal::derive(move || timestamps_state.settings.get().include_timestamps)
-                                        on_toggle=Callback::new(move |_| {
-                                            timestamps_state.settings.update(|settings| {
-                                                settings.include_timestamps = !settings.include_timestamps;
-                                            });
-                                            persist_settings_snapshot(timestamps_state.settings.get_untracked());
-                                        })
-                                    />
+                                        <SettingsGroup heading="Preferences">
+                                            <SettingsToggleRow
+                                                description="Anonymous crash reporting for desktop debugging only."
+                                                label="Telemetry"
+                                                value=Signal::derive(move || {
+                                                    telemetry_state.settings.get().telemetry
+                                                })
+                                                on_toggle=Callback::new(move |_| {
+                                                    telemetry_state.settings.update(|settings| {
+                                                        settings.telemetry = !settings.telemetry;
+                                                    });
+                                                    persist_settings_snapshot(
+                                                        telemetry_state.settings.get_untracked(),
+                                                    );
+                                                })
+                                            />
 
-                                    <ToggleRow
-                                        label="Include speaker labels"
-                                        description="Prefix speakers when diarization data exists for the transcript."
-                                        value=Signal::derive(move || speaker_labels_state.settings.get().include_speaker_labels)
-                                        on_toggle=Callback::new(move |_| {
-                                            speaker_labels_state.settings.update(|settings| {
-                                                settings.include_speaker_labels = !settings.include_speaker_labels;
-                                            });
-                                            persist_settings_snapshot(speaker_labels_state.settings.get_untracked());
-                                        })
-                                    />
-                                </div>
+                                            <SettingsToggleRow
+                                                description="Surface available releases in supported desktop builds."
+                                                label="Check for updates"
+                                                value=Signal::derive(move || {
+                                                    updates_state.settings.get().check_for_updates
+                                                })
+                                                on_toggle=Callback::new(move |_| {
+                                                    updates_state.settings.update(|settings| {
+                                                        settings.check_for_updates =
+                                                            !settings.check_for_updates;
+                                                    });
+                                                    persist_settings_snapshot(
+                                                        updates_state.settings.get_untracked(),
+                                                    );
+                                                })
+                                            />
+                                        </SettingsGroup>
+                                    </div>
+                                }
+                                .into_any()
                             }
-                            .into_any()
-                        }
-                        "privacy" => {
-                            let telemetry_state = shell.clone();
-                            let updates_state = shell.clone();
+                            _ => {
+                                let theme_state = shell.clone();
+                                let hardware_state = shell.clone();
+                                let app_state = shell.clone();
+                                let model_count = models;
 
-                            view! {
-                                <div class="space-y-6">
-                                    <SectionIntro
-                                        title="Privacy"
-                                        subtitle="All processing is local. No audio leaves your device during transcription."
-                                    />
-
-                                    <ToggleRow
-                                        label="Telemetry"
-                                        description="Anonymous crash reporting for desktop debugging only."
-                                        value=Signal::derive(move || telemetry_state.settings.get().telemetry)
-                                        on_toggle=Callback::new(move |_| {
-                                            telemetry_state.settings.update(|settings| settings.telemetry = !settings.telemetry);
-                                            persist_settings_snapshot(telemetry_state.settings.get_untracked());
-                                        })
-                                    />
-
-                                    <ToggleRow
-                                        label="Check for updates"
-                                        description="Surface available releases in supported desktop builds."
-                                        value=Signal::derive(move || updates_state.settings.get().check_for_updates)
-                                        on_toggle=Callback::new(move |_| {
-                                            updates_state.settings.update(|settings| settings.check_for_updates = !settings.check_for_updates);
-                                            persist_settings_snapshot(updates_state.settings.get_untracked());
-                                        })
-                                    />
-                                </div>
-                            }
-                            .into_any()
-                        }
-                        _ => {
-                            let about_hardware_state = shell.clone();
-                            let theme_state = shell.clone();
-                            let model_count = models().len();
-                            view! {
-                                <div class="space-y-6">
-                                    <SectionIntro
-                                        title="About"
-                                        subtitle="Operational metadata for support, debugging, and environment clarity."
-                                    />
-
-                                    <SettingBlock label="Theme" description="Preferred app appearance across launches.">
-                                        <SegmentedRow
-                                            options=vec![
-                                                ("auto".to_string(), "System".to_string()),
-                                                ("light".to_string(), "Light".to_string()),
-                                                ("dark".to_string(), "Dark".to_string()),
-                                            ]
-                                            value=Signal::derive(move || match theme_state.theme_preference.get() {
-                                                ThemePreference::Auto => "auto".to_string(),
-                                                ThemePreference::Light => "light".to_string(),
-                                                ThemePreference::Dark => "dark".to_string(),
-                                            })
-                                            on_select=Callback::new(move |value: String| {
-                                                let preference = match value.as_str() {
-                                                    "light" => ThemePreference::Light,
-                                                    "dark" => ThemePreference::Dark,
-                                                    _ => ThemePreference::Auto,
-                                                };
-                                                theme_state.theme_preference.set(preference);
-                                                theme_state.settings.update(|settings| settings.theme_preference = preference);
-                                                persist_settings_snapshot(theme_state.settings.get_untracked());
-                                            })
+                                view! {
+                                    <div class="space-y-8">
+                                        <SectionIntro
+                                            title="About"
+                                            subtitle="Operational metadata for support, debugging, and environment clarity."
                                         />
-                                    </SettingBlock>
 
-                                    <InfoRow
-                                        label="App"
-                                        description="Current desktop package metadata."
-                                        value=Signal::derive(|| String::from("Transcript / Leptos + Tauri / offline-first transcription"))
-                                    />
+                                        <SettingsGroup heading="Appearance">
+                                            <SettingsSelectRow
+                                                description="Preferred app appearance across launches."
+                                                label="Theme"
+                                                options=vec![
+                                                    ("auto".to_string(), "System".to_string()),
+                                                    ("light".to_string(), "Light".to_string()),
+                                                    ("dark".to_string(), "Dark".to_string()),
+                                                ]
+                                                value=Signal::derive(move || match theme_state.theme_preference.get() {
+                                                    ThemePreference::Auto => "auto".to_string(),
+                                                    ThemePreference::Light => "light".to_string(),
+                                                    ThemePreference::Dark => "dark".to_string(),
+                                                })
+                                                on_select=Callback::new(move |value: String| {
+                                                    let preference = match value.as_str() {
+                                                        "light" => ThemePreference::Light,
+                                                        "dark" => ThemePreference::Dark,
+                                                        _ => ThemePreference::Auto,
+                                                    };
+                                                    theme_state.theme_preference.set(preference);
+                                                    theme_state.settings.update(|settings| {
+                                                        settings.theme_preference = preference;
+                                                    });
+                                                    persist_settings_snapshot(
+                                                        theme_state.settings.get_untracked(),
+                                                    );
+                                                })
+                                            />
+                                        </SettingsGroup>
 
-                                    <InfoRow
-                                        label="Hardware"
-                                        description="Snapshot loaded when the app boots."
-                                        value=Signal::derive(move || {
-                                            about_hardware_state
-                                                .hardware_info
-                                                .get()
-                                                .map(|info| format!("{} GB RAM / {}", info.ram_gb, info.cpu_name))
-                                                .unwrap_or_else(|| "Hardware snapshot unavailable".into())
-                                        })
-                                    />
+                                        <SettingsGroup heading="Environment">
+                                            <SettingsInfoRow
+                                                description="Current desktop package metadata."
+                                                label="App"
+                                                value=Signal::derive(move || {
+                                                    let export_format =
+                                                        app_state.settings.get().default_export_format;
+                                                    format!(
+                                                        "Transcript / offline-first desktop app / default {} export",
+                                                        export_format.to_uppercase()
+                                                    )
+                                                })
+                                            />
 
-                                    <InfoRow
-                                        label="Models"
-                                        description="Catalog entries currently visible to the UI."
-                                        value=Signal::derive(move || format!("{} entries loaded", model_count))
-                                    />
-                                </div>
+                                            <SettingsInfoRow
+                                                description="Snapshot loaded when the app boots."
+                                                label="Hardware"
+                                                value=Signal::derive(move || {
+                                                    hardware_state
+                                                        .hardware_info
+                                                        .get()
+                                                        .map(|info| {
+                                                            format!(
+                                                                "{} GB RAM / {}",
+                                                                info.ram_gb, info.cpu_name
+                                                            )
+                                                        })
+                                                        .unwrap_or_else(|| {
+                                                            "Hardware snapshot unavailable".into()
+                                                        })
+                                                })
+                                            />
+
+                                            <SettingsInfoRow
+                                                description="Catalog entries currently visible to the UI."
+                                                label="Models"
+                                                value=Signal::derive(move || {
+                                                    format!("{} entries loaded", model_count.get().len())
+                                                })
+                                            />
+                                        </SettingsGroup>
+                                    </div>
+                                }
+                                .into_any()
                             }
-                            .into_any()
-                        }
-                    }}
-                </section>
-            </div>
+                        }}
+                    </div>
+                </div>
+            </section>
         </WorkspaceShell>
+    }
+}
+
+#[component]
+fn SettingsNavButton(
+    active_section: RwSignal<String>,
+    id: &'static str,
+    label: &'static str,
+    icon: AnyView,
+) -> impl IntoView {
+    view! {
+        <button
+            class=move || {
+                if active_section.get() == id {
+                    "flex w-full items-center gap-3 rounded-[1rem] bg-white px-3 py-2.5 text-left text-sm font-medium text-zinc-950 shadow-sm dark:bg-[#34362f] dark:text-zinc-50"
+                } else {
+                    "flex w-full items-center gap-3 rounded-[1rem] px-3 py-2.5 text-left text-sm text-zinc-600 transition hover:bg-white hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-[#34362f] dark:hover:text-zinc-100"
+                }
+            }
+            on:click=move |_| active_section.set(id.into())
+            type="button"
+        >
+            <span class="flex h-8 w-8 items-center justify-center rounded-[0.9rem] border border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-white/5 dark:bg-[#242621] dark:text-zinc-300">
+                {icon}
+            </span>
+            <span>{label}</span>
+        </button>
     }
 }
 
@@ -332,124 +451,150 @@ pub fn SettingsPage() -> impl IntoView {
 fn SectionIntro(title: &'static str, subtitle: &'static str) -> impl IntoView {
     view! {
         <div>
-            <h2 class="text-lg font-semibold text-zinc-950 dark:text-zinc-100">{title}</h2>
-            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-500">{subtitle}</p>
+            <h1 class="text-[1.5rem] font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{title}</h1>
+            <p class="mt-1 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-400">{subtitle}</p>
         </div>
     }
 }
 
 #[component]
-fn SettingBlock(
+fn SettingsGroup(heading: &'static str, children: Children) -> impl IntoView {
+    view! {
+        <section>
+            <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-500">{heading}</p>
+            <div class="mt-4 rounded-[1.1rem] border border-zinc-200/90 bg-white/70 px-5 dark:border-white/5 dark:bg-[#2c2d29]">
+                {children()}
+            </div>
+        </section>
+    }
+}
+
+#[component]
+fn SettingsRow(
     label: &'static str,
     description: &'static str,
     children: Children,
 ) -> impl IntoView {
     view! {
-        <div class="space-y-3 border-b border-zinc-200 pb-4 last:border-b-0 last:pb-0 dark:border-zinc-900">
-            <div>
+        <div class="flex flex-col gap-3 border-b border-zinc-200 py-5 last:border-b-0 dark:border-white/5 md:flex-row md:items-center md:justify-between md:gap-6">
+            <div class="min-w-0 flex-1">
                 <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">{label}</p>
-                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-500">{description}</p>
+                <p class="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">{description}</p>
             </div>
-            {children()}
+            <div class="w-full md:w-auto md:min-w-[180px] md:max-w-[220px] md:flex-shrink-0 md:text-right">
+                {children()}
+            </div>
         </div>
     }
 }
 
 #[component]
-fn InfoRow(
+fn SettingsSelectRow(
     label: &'static str,
     description: &'static str,
-    #[prop(into)] value: Signal<String>,
-) -> impl IntoView {
-    view! {
-        <div class="border-b border-zinc-200 pb-4 last:border-b-0 last:pb-0 dark:border-zinc-900">
-            <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">{label}</p>
-            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-500">{description}</p>
-            <p class="mt-3 text-sm text-zinc-700 dark:text-zinc-300">{move || value.get()}</p>
-        </div>
-    }
-}
-
-#[component]
-fn SegmentedRow(
     options: Vec<(String, String)>,
     #[prop(into)] value: Signal<String>,
     on_select: Callback<String>,
 ) -> impl IntoView {
     view! {
-        <div class="flex flex-wrap gap-2">
-            {options
-                .into_iter()
-                .map(|(option_value, option_label)| {
-                    let callback = on_select;
-                    let active_value = option_value.clone();
-                    view! {
-                        <button
-                            class=move || {
-                                if value.get() == active_value {
-                                    "rounded-lg border border-zinc-300 bg-zinc-950 px-3 py-2 text-sm font-medium text-white dark:border-zinc-700 dark:bg-zinc-100 dark:text-zinc-950"
-                                } else {
-                                    "rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-300 dark:hover:bg-[#17181b]"
-                                }
-                            }
-                            on:click={
-                                let next = option_value.clone();
-                                move |_| callback.run(next.clone())
-                            }
-                            type="button"
-                        >
-                            {option_label}
-                        </button>
-                    }
-                })
-                .collect_view()}
-        </div>
+        <SettingsRow label=label description=description>
+            <select
+                class="h-11 w-full rounded-[0.95rem] border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-zinc-400 dark:border-white/10 dark:bg-[#242621] dark:text-zinc-100 dark:focus:border-zinc-500"
+                on:change=move |event| on_select.run(event_target_value(&event))
+                prop:value=move || value.get()
+            >
+                {options
+                    .into_iter()
+                    .map(|(option_value, option_label)| {
+                        view! { <option value=option_value>{option_label}</option> }
+                    })
+                    .collect_view()}
+            </select>
+        </SettingsRow>
     }
 }
 
 #[component]
-fn ToggleRow(
+fn SettingsToggleRow(
     label: &'static str,
     description: &'static str,
     #[prop(into)] value: Signal<bool>,
     on_toggle: Callback<()>,
 ) -> impl IntoView {
     view! {
-        <div class="flex items-center justify-between gap-4 border-b border-zinc-200 pb-4 last:border-b-0 last:pb-0 dark:border-zinc-900">
-            <div>
-                <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">{label}</p>
-                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-500">{description}</p>
-            </div>
-            <button
-                class=move || {
-                    if value.get() {
-                        "relative h-5 w-9 rounded-full bg-zinc-950 dark:bg-zinc-100"
-                    } else {
-                        "relative h-5 w-9 rounded-full bg-zinc-300 dark:bg-zinc-800"
-                    }
-                }
-                on:click=move |_| on_toggle.run(())
-                type="button"
-            >
-                <span
+        <SettingsRow label=label description=description>
+            <div class="flex w-full justify-start md:justify-end">
+                <button
+                    aria-pressed=move || value.get().to_string()
                     class=move || {
                         if value.get() {
-                            "absolute left-[18px] top-0.5 block h-4 w-4 rounded-full bg-white dark:bg-zinc-950"
+                            "relative h-7 w-12 rounded-full bg-zinc-950 transition dark:bg-zinc-100"
                         } else {
-                            "absolute left-0.5 top-0.5 block h-4 w-4 rounded-full bg-white dark:bg-zinc-100"
+                            "relative h-7 w-12 rounded-full bg-zinc-300 transition dark:bg-[#1f211d]"
                         }
                     }
-                ></span>
-            </button>
-        </div>
+                    on:click=move |_| on_toggle.run(())
+                    type="button"
+                >
+                    <span
+                        class=move || {
+                            if value.get() {
+                                "absolute left-[26px] top-1 block h-5 w-5 rounded-full bg-white dark:bg-[#242621]"
+                            } else {
+                                "absolute left-1 top-1 block h-5 w-5 rounded-full bg-white dark:bg-zinc-400"
+                            }
+                        }
+                    ></span>
+                </button>
+            </div>
+        </SettingsRow>
     }
 }
 
-fn nav_abbrev(label: &str) -> &'static str {
-    match label {
-        "Transcription" => "TR",
-        "Export" => "EX",
-        "Privacy" => "PR",
-        _ => "AB",
+#[component]
+fn SettingsInfoRow(
+    label: &'static str,
+    description: &'static str,
+    #[prop(into)] value: Signal<String>,
+) -> impl IntoView {
+    view! {
+        <SettingsRow label=label description=description>
+            <p class="text-sm leading-6 text-zinc-700 dark:text-zinc-300">{move || value.get()}</p>
+        </SettingsRow>
+    }
+}
+
+fn settings_nav_icon(section: &str) -> AnyView {
+    match section {
+        "transcription" => view! {
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
+                <path d="M4 4H12" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
+                <path d="M4 8H10" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
+                <path d="M4 12H8" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
+            </svg>
+        }
+        .into_any(),
+        "export" => view! {
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
+                <path d="M8 3V10" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
+                <path d="M5.5 7.5L8 10L10.5 7.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
+                <path d="M3 12.5H13" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
+            </svg>
+        }
+        .into_any(),
+        "privacy" => view! {
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
+                <path d="M8 2L12 3.5V7.2C12 9.6 10.3 11.8 8 12.5C5.7 11.8 4 9.6 4 7.2V3.5L8 2Z" stroke="currentColor" stroke-linejoin="round" stroke-width="1.2"/>
+            </svg>
+        }
+        .into_any(),
+        _ => view! {
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
+                <circle cx="8" cy="8" r="5" stroke="currentColor" stroke-width="1.2"/>
+                <path d="M8 6V8.2" stroke="currentColor" stroke-linecap="round" stroke-width="1.2"/>
+                <circle cx="8" cy="11" r="0.7" fill="currentColor"/>
+            </svg>
+        }
+        .into_any(),
     }
 }

@@ -29,15 +29,15 @@ pub fn LiveSegmentList(
     });
 
     view! {
-        <div node_ref=list_ref class="flex max-h-[26rem] flex-col gap-3 overflow-auto pr-1">
+        <div node_ref=list_ref class="flex max-h-[28rem] flex-col gap-4 overflow-auto pr-1">
             {move || {
                 let items = segments.get();
                 if items.is_empty() {
                     view! {
-                        <div class="rounded-xl border border-dashed border-zinc-300 bg-zinc-100/80 px-5 py-8 text-center dark:border-zinc-800 dark:bg-[#121316]">
+                        <div class="rounded-[1.05rem] border border-dashed border-zinc-300 bg-zinc-50/70 px-5 py-10 text-center dark:border-white/10 dark:bg-[#262823]">
                             <p class="text-sm font-medium text-zinc-950 dark:text-zinc-100">"No live segments yet"</p>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-500">
-                                "Segments will appear here once the model starts emitting transcript text."
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                                "Segments appear here as soon as the local model starts emitting transcript text."
                             </p>
                         </div>
                     }
@@ -57,24 +57,26 @@ pub fn LiveSegmentList(
                             );
 
                             view! {
-                                <div class="flex gap-3">
+                                <div class="grid gap-2 md:grid-cols-[36px_minmax(0,1fr)] md:items-start">
                                     <div
-                                        class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold"
                                         style=format!("background:{}; color:{};", background, foreground)
+                                        title=segment.speaker.clone()
                                     >
                                         {speaker_initial(&segment.speaker)}
                                     </div>
-                                    <div class="min-w-0 flex-1 rounded-xl bg-zinc-100 px-4 py-3 dark:bg-[#101114]">
-                                        <div class="flex flex-wrap items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-500">
-                                            <span class="font-medium" style=format!("color:{};", foreground)>{segment.speaker.clone()}</span>
-                                            <span>{time_range}</span>
+                                    <div class="min-w-0">
+                                        <div class="rounded-[0.95rem] bg-zinc-100 px-4 py-3 dark:bg-[#242621]">
+                                            <p class="text-sm leading-7 text-zinc-900 dark:text-zinc-100">
+                                                {segment.text.clone()}
+                                                <Show when=move || show_cursor>
+                                                    <span class="ml-1 inline-block h-4 w-1 animate-pulse rounded bg-zinc-900 align-middle dark:bg-zinc-100"></span>
+                                                </Show>
+                                            </p>
                                         </div>
-                                        <p class="mt-2 text-sm leading-7 text-zinc-900 dark:text-zinc-100">
-                                            {segment.text.clone()}
-                                            <Show when=move || show_cursor>
-                                                <span class="ml-1 inline-block h-4 w-1 animate-pulse rounded bg-zinc-900 align-middle dark:bg-zinc-100"></span>
-                                            </Show>
-                                        </p>
+                                        <div class="mt-2 px-1 text-[11px] text-zinc-500 dark:text-zinc-500">
+                                            {time_range}
+                                        </div>
                                     </div>
                                 </div>
                             }

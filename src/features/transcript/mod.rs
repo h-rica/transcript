@@ -1,14 +1,15 @@
 mod service;
 
 use leptos::{prelude::*, task::spawn_local};
+use leptos_router::components::A;
 use wasm_bindgen_futures::JsFuture;
 
 use crate::{
-    components::workspace::{WorkspaceHeader, WorkspaceRoute, WorkspaceShell},
+    components::workspace::{WorkspaceRoute, WorkspaceShell},
     features::shared::{format_mm_ss, speaker_palette},
     state::app_state::{
-        ExportRequest, TranscriptSegment, use_app_shell_state, use_transcript_view_state,
-        use_transcription_session_state,
+        ExportRequest, TranscriptSegment, TranscriptViewState, use_app_shell_state,
+        use_transcript_view_state, use_transcription_session_state,
     },
 };
 
@@ -113,83 +114,15 @@ pub fn TranscriptScreen() -> impl IntoView {
 
     view! {
         <WorkspaceShell route=WorkspaceRoute::Transcript>
-            <WorkspaceHeader
-                title="Transcript"
-                subtitle=Signal::derive(move || {
-                    shell
-                        .selected_file
-                        .get()
-                        .map(|file| file.name)
-                        .unwrap_or_else(|| "Current transcript".into())
-                })
-            >
-                <div class="flex items-center gap-2">
-                    <button
-                        class="inline-flex h-8 items-center rounded-lg border border-zinc-200 px-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-zinc-800 dark:text-zinc-300 dark:hover:bg-[#17181b] dark:hover:text-zinc-100"
-                        on:click=move |_| copy_segments.run(())
-                        type="button"
-                    >
-                        "Copy all"
-                    </button>
-                    <div class="relative">
-                        <button
-                            class="inline-flex h-8 items-center rounded-lg bg-zinc-950 px-3 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
-                            on:click=move |_| view_state.export_open.update(|open| *open = !*open)
-                            type="button"
-                        >
-                            "Export"
-                        </button>
-                        <Show when=move || view_state.export_open.get()>
-                            <div class="absolute right-0 top-full z-20 mt-2 w-[260px] rounded-[1rem] border border-zinc-200 bg-white p-3 shadow-lg dark:border-zinc-900 dark:bg-[#141519]">
-                                <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">"Export format"</p>
-                                <div class="mt-3 flex flex-wrap gap-2">
-                                    {["txt", "srt"]
-                                        .into_iter()
-                                        .map(|value| {
-                                            let label = value.to_uppercase();
-                                            view! {
-                                                <button
-                                                    class=move || {
-                                                        if view_state.export_format.get() == value {
-                                                            "rounded-lg border border-zinc-300 bg-zinc-950 px-3 py-2 text-sm font-medium text-white dark:border-zinc-700 dark:bg-zinc-100 dark:text-zinc-950"
-                                                        } else {
-                                                            "rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-300 dark:hover:bg-[#17181b]"
-                                                        }
-                                                    }
-                                                    on:click=move |_| view_state.export_format.set(value.into())
-                                                    type="button"
-                                                >
-                                                    {label}
-                                                </button>
-                                            }
-                                        })
-                                        .collect_view()}
-                                    <span class="inline-flex items-center rounded-lg border border-zinc-200 px-3 py-2 text-[11px] font-medium text-zinc-500 dark:border-zinc-800 dark:text-zinc-500">
-                                        "DOCX deferred"
-                                    </span>
-                                </div>
-                                <button
-                                    class="mt-3 inline-flex h-9 w-full items-center justify-center rounded-lg bg-zinc-950 px-3 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
-                                    on:click=move |_| run_export.run(())
-                                    type="button"
-                                >
-                                    {move || format!("Export {}", view_state.export_format.get().to_uppercase())}
-                                </button>
-                            </div>
-                        </Show>
-                    </div>
-                </div>
-            </WorkspaceHeader>
-
             {move || {
                 if session.segments.get().is_empty() {
                     return view! {
-                        <div class="rounded-[1.15rem] border border-dashed border-zinc-300 bg-zinc-100/80 px-6 py-12 text-center dark:border-zinc-800 dark:bg-[#121316]">
+                        <section class="rounded-[1.35rem] border border-zinc-200 bg-white px-6 py-16 text-center shadow-sm dark:border-white/5 dark:bg-[#30312d]">
                             <p class="text-base font-medium text-zinc-950 dark:text-zinc-100">"No transcript available"</p>
-                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-500">
+                            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
                                 "Complete a transcription run before opening transcript review."
                             </p>
-                        </div>
+                        </section>
                     }
                     .into_any();
                 }
@@ -197,123 +130,116 @@ pub fn TranscriptScreen() -> impl IntoView {
                 let speaker_segments = filtered_segments();
                 let timeline_segments = speaker_segments.clone();
                 let raw_segments = speaker_segments.clone();
-
+                let speaker_list = speaker_names();
+                let file_name = shell
+                    .selected_file
+                    .get()
+                    .map(|file| file.name)
+                    .unwrap_or_else(|| "Current transcript".into());
                 view! {
-                    <div class="space-y-4">
+                    <section class="overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-sm dark:border-white/5 dark:bg-[#30312d]">
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 px-5 py-4 dark:border-white/5">
+                            <div class="flex min-w-0 items-center gap-3 text-sm">
+                                <A
+                                    attr:class="inline-flex items-center gap-2 text-zinc-500 transition hover:text-zinc-950 dark:text-zinc-500 dark:hover:text-zinc-100"
+                                    href="/"
+                                >
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
+                                        <path d="M9.5 3.5L5 8L9.5 12.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
+                                    </svg>
+                                    "Home"
+                                </A>
+                                <span class="truncate font-medium text-zinc-950 dark:text-zinc-100">{file_name}</span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button
+                                    class="inline-flex h-10 items-center gap-2 rounded-[0.95rem] border border-zinc-200 px-4 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-[#34362f] dark:hover:text-zinc-100"
+                                    on:click=move |_| copy_segments.run(())
+                                    type="button"
+                                >
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
+                                        <rect x="3" y="3" width="8" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+                                        <path d="M6 1.5H12.5V10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
+                                    </svg>
+                                    "Copy all"
+                                </button>
+                                <ExportMenu run_export=run_export view_state=view_state.clone()/>
+                            </div>
+                        </div>
+
+                        <div class="border-b border-zinc-200 px-5 dark:border-white/5">
+                            <div class="flex gap-6 overflow-x-auto">
+                                <TranscriptTabButton id="speakers" label="Speakers" view_state=view_state.clone()/>
+                                <TranscriptTabButton id="timeline" label="Timeline" view_state=view_state.clone()/>
+                                <TranscriptTabButton id="raw" label="Raw" view_state=view_state.clone()/>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2 border-b border-zinc-200 px-5 py-4 dark:border-white/5">
+                            <button
+                                class=move || {
+                                    if view_state.speaker_filter.get().is_empty() {
+                                        "inline-flex items-center rounded-full border border-zinc-300 bg-zinc-950 px-4 py-1.5 text-sm font-medium text-white dark:border-white/10 dark:bg-[#34362f] dark:text-zinc-50"
+                                    } else {
+                                        "inline-flex items-center rounded-full border border-zinc-200 px-4 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-[#34362f] dark:hover:text-zinc-100"
+                                    }
+                                }
+                                on:click=move |_| view_state.speaker_filter.set(String::new())
+                                type="button"
+                            >
+                                "All speakers"
+                            </button>
+                            {speaker_list
+                                .into_iter()
+                                .map(|speaker| {
+                                    view! {
+                                        <SpeakerFilterButton speaker=speaker view_state=view_state.clone()/>
+                                    }
+                                })
+                                .collect_view()}
+                        </div>
+
                         <Show when=move || view_state.export_message.get().is_some()>
-                            <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                            <p class="px-5 pt-4 text-sm text-zinc-600 dark:text-zinc-400">
                                 {move || view_state.export_message.get().unwrap_or_default()}
                             </p>
                         </Show>
 
-                        <section class="rounded-[1.15rem] border border-zinc-200 bg-white px-4 py-4 dark:border-zinc-900 dark:bg-[#141519]">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <button
-                                    class=move || if view_state.speaker_filter.get().is_empty() {
-                                        "rounded-full border border-zinc-300 bg-zinc-950 px-3 py-1.5 text-sm font-medium text-white dark:border-zinc-700 dark:bg-zinc-100 dark:text-zinc-950"
-                                    } else {
-                                        "rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-300 dark:hover:bg-[#17181b]"
-                                    }
-                                    on:click=move |_| view_state.speaker_filter.set(String::new())
-                                    type="button"
-                                >
-                                    "All speakers"
-                                </button>
-                                {speaker_names().into_iter().map(|speaker| {
-                                    let tone = speaker_palette(&speaker);
-                                    let button_speaker = speaker.clone();
-                                    let active_speaker = speaker.clone();
-                                    view! {
-                                        <button
-                                            class=move || {
-                                                let active = view_state.speaker_filter.get() == active_speaker;
-                                                if active {
-                                                    "rounded-full border px-3 py-1.5 text-sm font-medium text-zinc-950 dark:text-zinc-950".to_string()
-                                                } else {
-                                                    "rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-300 dark:hover:bg-[#17181b]".into()
-                                                }
-                                            }
-                                            on:click={
-                                                let button_speaker = button_speaker.clone();
-                                                move |_| view_state.speaker_filter.set(button_speaker.clone())
-                                            }
-                                            style=move || {
-                                                if view_state.speaker_filter.get() == speaker {
-                                                    format!("background:{}; border-color:{}; color:{};", tone.0, tone.1, tone.1)
-                                                } else {
-                                                    String::new()
-                                                }
-                                            }
-                                            type="button"
-                                        >
-                                            {speaker.clone()}
-                                        </button>
-                                    }
-                                }).collect_view()}
-                            </div>
-
-                            <div class="mt-5 border-b border-zinc-200 dark:border-zinc-900">
-                                <div class="flex gap-6">
-                                    {[('s', "Speakers"), ('t', "Timeline"), ('r', "Raw")]
-                                        .into_iter()
-                                        .map(|(value, label)| {
-                                            let tab_value = match value {
-                                                't' => "timeline",
-                                                'r' => "raw",
-                                                _ => "speakers",
-                                            };
-                                            view! {
-                                                <button
-                                                    class=move || {
-                                                        if view_state.active_tab.get() == tab_value {
-                                                            "border-b-2 border-zinc-950 pb-3 text-sm font-medium text-zinc-950 dark:border-zinc-100 dark:text-zinc-100"
-                                                        } else {
-                                                            "border-b-2 border-transparent pb-3 text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-200"
-                                                        }
-                                                    }
-                                                    on:click=move |_| view_state.active_tab.set(tab_value.into())
-                                                    type="button"
-                                                >
-                                                    {label}
-                                                </button>
-                                            }
-                                        })
-                                        .collect_view()}
-                                </div>
-                            </div>
-
-                            <div class="mt-5">
-                                {move || match view_state.active_tab.get().as_str() {
-                                    "timeline" => view! {
-                                        <div class="space-y-3">
-                                            {timeline_segments.clone().into_iter().map(render_timeline_segment).collect_view()}
-                                        </div>
-                                    }.into_any(),
-                                    "raw" => view! {
-                                        <pre class="overflow-auto rounded-xl border border-zinc-200 bg-zinc-100/80 p-4 text-sm leading-7 text-zinc-900 dark:border-zinc-800 dark:bg-[#101114] dark:text-zinc-100">
-                                            {raw_segments.clone()
-                                                .into_iter()
-                                                .map(|segment| {
-                                                    format!(
-                                                        "[{} -> {}] {}: {}\n",
-                                                        format_mm_ss(segment.start_s),
-                                                        format_mm_ss(segment.end_s),
-                                                        segment.speaker,
-                                                        segment.text
-                                                    )
-                                                })
-                                                .collect::<String>()}
-                                        </pre>
-                                    }.into_any(),
-                                    _ => view! {
-                                        <div class="space-y-3">
-                                            {speaker_segments.clone().into_iter().map(render_speaker_segment).collect_view()}
-                                        </div>
-                                    }.into_any(),
-                                }}
-                            </div>
-                        </section>
-                    </div>
+                        <div class="px-5 py-5">
+                            {move || match view_state.active_tab.get().as_str() {
+                                "timeline" => view! {
+                                    <div class="space-y-5">
+                                        {timeline_segments.clone().into_iter().map(render_timeline_segment).collect_view()}
+                                    </div>
+                                }
+                                .into_any(),
+                                "raw" => view! {
+                                    <pre class="overflow-auto rounded-[1rem] bg-zinc-100/80 p-4 text-sm leading-7 text-zinc-900 dark:bg-[#242621] dark:text-zinc-100">
+                                        {raw_segments.clone()
+                                            .into_iter()
+                                            .map(|segment| {
+                                                format!(
+                                                    "[{} -> {}] {}: {}\n",
+                                                    format_mm_ss(segment.start_s),
+                                                    format_mm_ss(segment.end_s),
+                                                    segment.speaker,
+                                                    segment.text
+                                                )
+                                            })
+                                            .collect::<String>()}
+                                    </pre>
+                                }
+                                .into_any(),
+                                _ => view! {
+                                    <div class="space-y-6">
+                                        {speaker_segments.clone().into_iter().map(render_speaker_segment).collect_view()}
+                                    </div>
+                                }
+                                .into_any(),
+                            }}
+                        </div>
+                    </section>
                 }
                 .into_any()
             }}
@@ -321,24 +247,123 @@ pub fn TranscriptScreen() -> impl IntoView {
     }
 }
 
+#[component]
+fn ExportMenu(view_state: TranscriptViewState, run_export: Callback<()>) -> impl IntoView {
+    view! {
+        <div class="relative">
+            <button
+                class="inline-flex h-10 items-center gap-2 rounded-[0.95rem] bg-zinc-950 px-4 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                on:click=move |_| view_state.export_open.update(|open| *open = !*open)
+                type="button"
+            >
+                "Export"
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 16 16">
+                    <path d="M4.5 6.5L8 10L11.5 6.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"/>
+                </svg>
+            </button>
+
+            <Show when=move || view_state.export_open.get()>
+                <div class="absolute right-0 top-full z-20 mt-2 w-[260px] rounded-[1rem] border border-zinc-200 bg-white p-3 shadow-lg dark:border-white/10 dark:bg-[#242621]">
+                    <p class="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">"Export format"</p>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        {[("txt", "TXT"), ("srt", "SRT")]
+                            .into_iter()
+                            .map(|(value, label)| {
+                                let button_view_state = view_state.clone();
+                                view! {
+                                    <button
+                                        class=move || {
+                                            if button_view_state.export_format.get() == value {
+                                                "rounded-full border border-zinc-300 bg-zinc-950 px-3 py-1.5 text-sm font-medium text-white dark:border-white/10 dark:bg-zinc-100 dark:text-zinc-950"
+                                            } else {
+                                                "rounded-full border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-[#34362f] dark:hover:text-zinc-100"
+                                            }
+                                        }
+                                        on:click=move |_| button_view_state.export_format.set(value.into())
+                                        type="button"
+                                    >
+                                        {label}
+                                    </button>
+                                }
+                            })
+                            .collect_view()}
+                    </div>
+                    <button
+                        class="mt-3 inline-flex h-10 w-full items-center justify-center rounded-[0.95rem] bg-zinc-950 px-4 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-zinc-200"
+                        on:click=move |_| run_export.run(())
+                        type="button"
+                    >
+                        {move || format!("Export {}", view_state.export_format.get().to_uppercase())}
+                    </button>
+                </div>
+            </Show>
+        </div>
+    }
+}
+
+#[component]
+fn TranscriptTabButton(
+    view_state: TranscriptViewState,
+    id: &'static str,
+    label: &'static str,
+) -> impl IntoView {
+    view! {
+        <button
+            class=move || {
+                if view_state.active_tab.get() == id {
+                    "border-b-2 border-zinc-950 pb-3 pt-4 text-sm font-medium text-zinc-950 dark:border-zinc-100 dark:text-zinc-100"
+                } else {
+                    "border-b-2 border-transparent pb-3 pt-4 text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-200"
+                }
+            }
+            on:click=move |_| view_state.active_tab.set(id.into())
+            type="button"
+        >
+            {label}
+        </button>
+    }
+}
+
+#[component]
+fn SpeakerFilterButton(view_state: TranscriptViewState, speaker: String) -> impl IntoView {
+    let (_, foreground) = speaker_palette(&speaker);
+    let active_speaker = speaker.clone();
+    let next_speaker = speaker.clone();
+
+    view! {
+        <button
+            class=move || {
+                if view_state.speaker_filter.get() == active_speaker {
+                    "inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-1.5 text-sm font-medium text-zinc-950 dark:border-white/10 dark:bg-[#34362f] dark:text-zinc-50"
+                } else {
+                    "inline-flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-[#34362f] dark:hover:text-zinc-100"
+                }
+            }
+            on:click=move |_| view_state.speaker_filter.set(next_speaker.clone())
+            type="button"
+        >
+            <span class="h-2.5 w-2.5 rounded-full" style=format!("background:{};", foreground)></span>
+            {speaker}
+        </button>
+    }
+}
+
 fn render_speaker_segment(segment: TranscriptSegment) -> impl IntoView {
     let (background, foreground) = speaker_palette(&segment.speaker);
     view! {
-        <div class="rounded-xl border border-zinc-200 bg-zinc-100/70 px-4 py-4 dark:border-zinc-800 dark:bg-[#101114]">
-            <div class="flex gap-4">
-                <div
-                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-                    style=format!("background:{}; color:{};", background, foreground)
-                >
-                    {segment.speaker.chars().next().unwrap_or('S').to_string()}
+        <div class="grid gap-3 md:grid-cols-[36px_minmax(0,1fr)]">
+            <div
+                class="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold"
+                style=format!("background:{}; color:{};", background, foreground)
+            >
+                {segment.speaker.chars().next().unwrap_or('S').to_string()}
+            </div>
+            <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-3 text-[11px] text-zinc-500 dark:text-zinc-500">
+                    <span class="font-medium" style=format!("color:{};", foreground)>{segment.speaker.clone()}</span>
+                    <span>{format!("{} -> {}", format_mm_ss(segment.start_s), format_mm_ss(segment.end_s))}</span>
                 </div>
-                <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-3 text-[11px] text-zinc-500 dark:text-zinc-500">
-                        <span class="font-medium" style=format!("color:{};", foreground)>{segment.speaker.clone()}</span>
-                        <span>{format!("{} -> {}", format_mm_ss(segment.start_s), format_mm_ss(segment.end_s))}</span>
-                    </div>
-                    <p class="mt-2 text-sm leading-7 text-zinc-900 dark:text-zinc-100">{segment.text}</p>
-                </div>
+                <p class="mt-1 text-[1.03rem] leading-8 text-zinc-900 dark:text-zinc-100">{segment.text}</p>
             </div>
         </div>
     }
@@ -347,11 +372,13 @@ fn render_speaker_segment(segment: TranscriptSegment) -> impl IntoView {
 fn render_timeline_segment(segment: TranscriptSegment) -> impl IntoView {
     let (_, foreground) = speaker_palette(&segment.speaker);
     view! {
-        <div class="grid gap-3 rounded-xl border border-zinc-200 bg-zinc-100/70 px-4 py-4 md:grid-cols-[7rem_1fr] dark:border-zinc-800 dark:bg-[#101114]">
-            <div class="text-sm font-medium text-zinc-600 dark:text-zinc-400">{format_mm_ss(segment.start_s)}</div>
+        <div class="grid gap-3 md:grid-cols-[7rem_minmax(0,1fr)]">
+            <div class="pt-1 text-sm text-zinc-500 dark:text-zinc-500">
+                {format!("{} -> {}", format_mm_ss(segment.start_s), format_mm_ss(segment.end_s))}
+            </div>
             <div>
                 <p class="text-[11px] font-medium uppercase tracking-[0.18em]" style=format!("color:{};", foreground)>{segment.speaker.clone()}</p>
-                <p class="mt-2 text-sm leading-7 text-zinc-900 dark:text-zinc-100">{segment.text}</p>
+                <p class="mt-2 text-base leading-8 text-zinc-900 dark:text-zinc-100">{segment.text}</p>
             </div>
         </div>
     }

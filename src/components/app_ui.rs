@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use leptos::{ev::MouseEvent, prelude::*};
 use leptos_router::components::A;
 use singlestage::{Badge, Card, CardContent, CardDescription, CardHeader, CardTitle};
