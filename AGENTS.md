@@ -2,6 +2,8 @@
 
 This is the canonical instruction file for coding agents working in this repository.
 
+Read `./MEMORY.md` at the start of every non-trivial task. It captures durable project memory, recurring blockers, and prevention rules that should reduce repeated mistakes and wasted time.
+
 Use the nearest `AGENTS.md` in the directory tree for file-specific rules:
 
 - `./AGENTS.md`: repo-wide rules
@@ -9,6 +11,12 @@ Use the nearest `AGENTS.md` in the directory tree for file-specific rules:
 - `./src-tauri/AGENTS.md`: backend-only rules
 
 If this file conflicts with an explicit user instruction, the user instruction wins.
+
+## Project Memory
+
+- `./MEMORY.md`: durable agent memory for recurring blockers, workflow defaults, and prevention notes
+- use `MEMORY.md` for stable lessons that should affect future tasks
+- use `docs/tasks.md` for active roadmap items and temporary task tracking
 
 ## Project Snapshot
 
